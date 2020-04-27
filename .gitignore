@@ -17,7 +17,7 @@ var/
 *.egg
 
 lambda/src/**/vendor/*
-lambda/layers/**/.pkg/*
+lambda/layers/**/*.zip
 
 # linting
 .pylintrc
