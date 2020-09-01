@@ -21,6 +21,8 @@ lambda/src/**/vendor/*
 
 lambda/layers/**/*.zip
 
+# testing scripts
+docker/src/testing
 
 # env files
 .env
