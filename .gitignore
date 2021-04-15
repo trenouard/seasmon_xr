@@ -16,6 +16,7 @@ var/
 .installed.cfg
 *.egg
 
+
 lambda/src/**/vendor/*
 !lambda/src/**/vendor/utils.py
 
@@ -172,3 +173,6 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# force include
+!src/assets/lib/
