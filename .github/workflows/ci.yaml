@@ -28,6 +28,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
             ${{ runner.os }}-
-
       - name: install dependencies
         run: pip install pytest -r src/worker/requirements.txt
+      - name: run pytest
+        run: python -m pytest src/tests/
