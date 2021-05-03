@@ -23,11 +23,11 @@ jobs:
       - name: cache deps
         uses: actions/cache@v2
         with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('src/worker/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
-          ${{ runner.os }}-
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('src/worker/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+            ${{ runner.os }}-
 
       - name: install dependencies
         run: pip install pytest -r src/worker/requirements.txt
