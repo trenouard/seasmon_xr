@@ -20,5 +20,15 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+
+      - name: cache deps
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('src/worker/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          ${{ runner.os }}-
+
       - name: install dependencies
-        run: pip install pytest -r $GITHUB_WORKSPACE/src/worker/requirements.txt
+        run: pip install pytest -r src/worker/requirements.txt
