@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-18.04
     defaults:
       run:
-        working-directory: ./src/assets/seasmon_xr/
+        working-directory: ./src/seasmon_xr/
     strategy:
       matrix:
         python-version: [3.7, 3.8, 3.9]
