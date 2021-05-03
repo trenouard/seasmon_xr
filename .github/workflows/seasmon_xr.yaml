@@ -29,5 +29,5 @@ jobs:
           key: ${{ env.pythonLocation }}-${{ hashFiles('requirements.txt') }}
       - name: install dependencies
         run: pip install --upgrade --upgrade-strategy eager -r requirements_dev.txt -r requirements.txt
-      # - name: run pytest
-      #   run: python -m pytest src/tests/
+      - name: run pytest
+        run: python -m pytest
