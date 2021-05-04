@@ -63,22 +63,24 @@ class IterativeAggregation:
     def sum(self,
             n: int = None,
             dim: str = "time",
-            start: Union[str, int, float] = None,
+            begin: Union[str, int, float] = None,
+            end: Union[str, int, float] = None,
             method: str = None):
         """Generate sum-aggregations over dim for periods n"""
 
-        yield from self._iteragg(np.nansum, n, dim, start, method)
+        yield from self._iteragg(np.nansum, n, dim, begin, end, method)
 
     def mean(self,
             n: int = None,
             dim: str = "time",
-            start: Union[str, int, float] = None,
+            begin: Union[str, int, float] = None,
+            end: Union[str, int, float] = None,
             method: str = None):
         """Generate mean-aggregations over dim for slices of n"""
 
-        yield from self._iteragg(np.nanmean, n, dim, start, method)
+        yield from self._iteragg(np.nanmean, n, dim, begin, end, method)
 
-    def _iteragg(self, func, n, dim, start, method):
+    def _iteragg(self, func, n, dim, begin, end, method):
 
         if dim not in self._obj.dims:
             raise ValueError("Dimension %s doesn't exist in xarray object!" % dim)
@@ -89,16 +91,26 @@ class IterativeAggregation:
             n = self._obj[dim].size
         assert n != 0, "n must be non-zero"
 
-        if start is None:
-            start_ix = 0
-        else:
+        if begin is not None:
             try:
-                start_ix = _index.get_loc(start, method=method)
+                begin_ix = (_index.get_loc(begin, method=method) + 1)
             except KeyError:
-                raise ValueError("Value %s for 'start' not found in index for dim %s" % (start, dim))
+                raise ValueError("Value %s for 'begin' not found in index for dim %s" % (begin, dim))
+        else:
+            begin_ix = self._obj.sizes[dim]
 
-        for ii in range(self._obj.sizes[dim], start_ix, (n * -1)):
-            jj = max(ii - n, start_ix)
+        if end is not None:
+            try:
+                end_ix = _index.get_loc(end, method=method)
+            except KeyError:
+                raise ValueError("Value %s for 'end' not found in index for dim %s" % (end, dim))
+        else:
+            end_ix = 0
+
+        for ii in range(begin_ix, 0, -1):
+            jj = ii - n
+            if ii <= end_ix:
+                break
             if jj >= 0 and (ii-jj) == n:
                 region = {dim: slice(jj, ii)}
                 _obj = self._obj[region].reduce(func, dim)
@@ -111,7 +123,6 @@ class IterativeAggregation:
                 if dim == "time":
                     _obj = _obj.expand_dims(time=[self._obj.time[ii-1].values])
                 yield _obj
-
 
 @xarray.register_dataset_accessor("whit")
 @xarray.register_dataarray_accessor("whit")

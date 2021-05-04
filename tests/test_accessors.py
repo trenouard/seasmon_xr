@@ -91,10 +91,11 @@ def test_agg_sum_1(darr):
         ii -=1
         n += 1
 
-def test_agg_sum_1_lim(darr):
+def test_agg_sum_1_lim_begin(darr):
     n = 0
-    ii = -1
-    for _x in darr.iteragg.sum(1, start="2000-01-21"):
+    begin = "2000-01-21"
+    ii = (darr.time.to_index().get_loc(begin))
+    for _x in darr.iteragg.sum(1, begin=begin):
         np.testing.assert_array_equal(
             _x.squeeze(),
             darr[ii, :]
@@ -105,6 +106,39 @@ def test_agg_sum_1_lim(darr):
         n += 1
     assert n == 3
 
+def test_agg_sum_1_lim_end(darr):
+    n = 0
+    end = "2000-01-21"
+    ii = -1
+    for _x in darr.iteragg.sum(1, end=end):
+        np.testing.assert_array_equal(
+            _x.squeeze(),
+            darr[ii, :]
+        )
+        assert _x.attrs['agg_n'] == 1
+        assert _x.time == darr.time[ii]
+        ii -=1
+        n += 1
+    assert n == 3
+    assert _x.time.dt.strftime("%Y-%m-%d").values == end #pylint: disable=undefined-loop-variable
+
+def test_agg_sum_1_lim_begin_end(darr):
+    n = 0
+    begin = "2000-01-31"
+    end = "2000-01-11"
+    ii = (darr.time.to_index().get_loc(begin))
+    for _x in darr.iteragg.sum(1, begin=begin, end=end):
+        np.testing.assert_array_equal(
+            _x.squeeze(),
+            darr[ii, :]
+        )
+        assert _x.attrs['agg_n'] == 1
+        assert _x.time == darr.time[ii]
+        ii -=1
+        n += 1
+    assert n == 3
+    assert _x.time.dt.strftime("%Y-%m-%d").values == end #pylint: disable=undefined-loop-variable
+
 def test_agg_sum_3(darr):
     n = 0
     for _x in darr.iteragg.sum(n=3):
@@ -113,9 +147,9 @@ def test_agg_sum_3(darr):
             darr.sel(time=slice(_x.attrs['agg_start'], _x.attrs['agg_stop'])).sum("time")
         )
         assert _x.attrs['agg_n'] == 3
-        assert _x.time == darr.time[-1]
+        assert str(_x.time.to_index()[0]) == _x.attrs['agg_stop']
         n += 1
-    assert n == 1
+    assert n == 3
 
 def test_agg_mean_1(darr):
     n = 0
@@ -131,10 +165,11 @@ def test_agg_mean_1(darr):
         n += 1
     assert n == 5
 
-def test_agg_mean_1_lim(darr):
+def test_agg_mean_1_lim_begin(darr):
     n = 0
-    ii = -1
-    for _x in darr.iteragg.mean(1, start="2000-01-21"):
+    begin = "2000-01-21"
+    ii = (darr.time.to_index().get_loc(begin))
+    for _x in darr.iteragg.mean(1, begin=begin):
         np.testing.assert_array_equal(
             _x.squeeze(),
             darr[ii, :]
@@ -145,6 +180,39 @@ def test_agg_mean_1_lim(darr):
         n += 1
     assert n == 3
 
+def test_agg_mean_1_lim_end(darr):
+    n = 0
+    end = "2000-01-21"
+    ii = -1
+    for _x in darr.iteragg.mean(1, end=end):
+        np.testing.assert_array_equal(
+            _x.squeeze(),
+            darr[ii, :]
+        )
+        assert _x.attrs['agg_n'] == 1
+        assert _x.time == darr.time[ii]
+        ii -=1
+        n += 1
+    assert n == 3
+    assert _x.time.dt.strftime("%Y-%m-%d").values == end #pylint: disable=undefined-loop-variable
+
+def test_agg_mean_1_lim_begin_end(darr):
+    n = 0
+    begin = "2000-01-31"
+    end = "2000-01-11"
+    ii = (darr.time.to_index().get_loc(begin))
+    for _x in darr.iteragg.mean(1, begin=begin, end=end):
+        np.testing.assert_array_equal(
+            _x.squeeze(),
+            darr[ii, :]
+        )
+        assert _x.attrs['agg_n'] == 1
+        assert _x.time == darr.time[ii]
+        ii -=1
+        n += 1
+    assert n == 3
+    assert _x.time.dt.strftime("%Y-%m-%d").values == end #pylint: disable=undefined-loop-variable
+
 def test_agg_mean_3(darr):
     n = 0
     for _x in darr.iteragg.mean(3):
@@ -153,9 +221,9 @@ def test_agg_mean_3(darr):
             darr.sel(time=slice(_x.attrs['agg_start'], _x.attrs['agg_stop'])).mean("time")
         )
         assert _x.attrs['agg_n'] == 3
-        assert _x.time == darr.time[-1]
+        assert str(_x.time.to_index()[0]) == _x.attrs['agg_stop']
         n += 1
-    assert n == 1
+    assert n == 3
 
 def test_whit_whits_s(darr):
     _res = np.array([[[54, 54, 55, 56, 60],
