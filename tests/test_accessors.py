@@ -86,18 +86,33 @@ def test_agg_sum_1(darr):
             _x.squeeze(),
             darr[ii, :]
         )
+        assert _x.attrs['agg_n'] == 1
         assert _x.time == darr.time[ii]
         ii -=1
         n += 1
-    assert n == 5
+
+def test_agg_sum_1_lim(darr):
+    n = 0
+    ii = -1
+    for _x in darr.iteragg.sum(1, start="2000-01-21"):
+        np.testing.assert_array_equal(
+            _x.squeeze(),
+            darr[ii, :]
+        )
+        assert _x.attrs['agg_n'] == 1
+        assert _x.time == darr.time[ii]
+        ii -=1
+        n += 1
+    assert n == 3
 
 def test_agg_sum_3(darr):
     n = 0
-    for _x in darr.iteragg.sum(3):
+    for _x in darr.iteragg.sum(n=3):
         np.testing.assert_array_equal(
             _x.squeeze(),
-            darr[2:,:].sum("time")
+            darr.sel(time=slice(_x.attrs['agg_start'], _x.attrs['agg_stop'])).sum("time")
         )
+        assert _x.attrs['agg_n'] == 3
         assert _x.time == darr.time[-1]
         n += 1
     assert n == 1
@@ -110,18 +125,34 @@ def test_agg_mean_1(darr):
             _x.squeeze(),
             darr[ii, :]
         )
+        assert _x.attrs['agg_n'] == 1
         assert _x.time == darr.time[ii]
         ii -=1
         n += 1
     assert n == 5
+
+def test_agg_mean_1_lim(darr):
+    n = 0
+    ii = -1
+    for _x in darr.iteragg.mean(1, start="2000-01-21"):
+        np.testing.assert_array_equal(
+            _x.squeeze(),
+            darr[ii, :]
+        )
+        assert _x.attrs['agg_n'] == 1
+        assert _x.time == darr.time[ii]
+        ii -=1
+        n += 1
+    assert n == 3
 
 def test_agg_mean_3(darr):
     n = 0
     for _x in darr.iteragg.mean(3):
         np.testing.assert_array_equal(
             _x.squeeze(),
-            darr[2:,:].mean("time")
+            darr.sel(time=slice(_x.attrs['agg_start'], _x.attrs['agg_stop'])).mean("time")
         )
+        assert _x.attrs['agg_n'] == 3
         assert _x.time == darr.time[-1]
         n += 1
     assert n == 1

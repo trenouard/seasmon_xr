@@ -62,40 +62,52 @@ class IterativeAggregation:
 
     def sum(self,
             n: int = None,
-            dim: str = "time"):
+            dim: str = "time",
+            start: Union[str, int, float] = None,
+            method: str = None):
         """Generate sum-aggregations over dim for periods n"""
 
-        if dim not in self._obj.dims:
-            raise ValueError("Dimension %s doesn't exist in xarray object!" % dim)
-
-        if not n:
-            n = self._obj[dim].size
-
-        for ii in range(self._obj.sizes[dim], 0, (n * -1)):
-            jj = ii - n
-            if jj >= 0:
-                region = {dim: slice(jj, ii)}
-                _obj = self._obj[region].sum(dim)
-                if dim == "time":
-                    _obj = _obj.expand_dims(time=[self._obj.time[ii-1].values])
-                yield _obj
+        yield from self._iteragg(np.nansum, n, dim, start, method)
 
     def mean(self,
             n: int = None,
-            dim: str = "time"):
+            dim: str = "time",
+            start: Union[str, int, float] = None,
+            method: str = None):
         """Generate mean-aggregations over dim for slices of n"""
+
+        yield from self._iteragg(np.nanmean, n, dim, start, method)
+
+    def _iteragg(self, func, n, dim, start, method):
 
         if dim not in self._obj.dims:
             raise ValueError("Dimension %s doesn't exist in xarray object!" % dim)
 
-        if not n:
-            n = self._obj[dim].size
+        _index = self._obj[dim].to_index()
 
-        for ii in range(self._obj.sizes[dim], 0, (n * -1)):
-            jj = ii - n
-            if jj >= 0:
+        if n is None:
+            n = self._obj[dim].size
+        assert n != 0, "n must be non-zero"
+
+        if start is None:
+            start_ix = 0
+        else:
+            try:
+                start_ix = _index.get_loc(start, method=method)
+            except KeyError:
+                raise ValueError("Value %s for 'start' not found in index for dim %s" % (start, dim))
+
+        for ii in range(self._obj.sizes[dim], start_ix, (n * -1)):
+            jj = max(ii - n, start_ix)
+            if jj >= 0 and (ii-jj) == n:
                 region = {dim: slice(jj, ii)}
-                _obj = self._obj[region].mean(dim)
+                _obj = self._obj[region].reduce(func, dim)
+                _obj = _obj.assign_attrs({
+                    "agg_start": str(_index[jj]),
+                    "agg_stop": str(_index[ii-1]),
+                    "agg_n": _index[jj:ii].size
+                })
+
                 if dim == "time":
                     _obj = _obj.expand_dims(time=[self._obj.time[ii-1].values])
                 yield _obj
