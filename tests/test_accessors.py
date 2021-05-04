@@ -36,28 +36,28 @@ def res_spi():
 def test_labels_dekad(darr):
 
     np.testing.assert_array_equal(
-        darr.time.labeler.dekads,
+        darr.time.labeler.dekad,
         ['200001d1', '200001d2', '200001d3', '200001d3', '200002d1']
     )
 
 def test_labels_dekad_single(darr):
 
     np.testing.assert_array_equal(
-        darr.isel(time=0).time.labeler.dekads,
+        darr.isel(time=0).time.labeler.dekad,
         ['200001d1']
     )
 
 def test_labels_pentad(darr):
 
     np.testing.assert_array_equal(
-        darr.time.labeler.pentads,
+        darr.time.labeler.pentad,
         ['200001p1', '200001p3', '200001p5', '200001p6', '200002p2']
     )
 
 def test_labels_pentad_single(darr):
 
     np.testing.assert_array_equal(
-        darr.isel(time=0).time.labeler.pentads,
+        darr.isel(time=0).time.labeler.pentad,
         ['200001p1']
     )
 

@@ -34,7 +34,7 @@ class LabelMaker:
         self._obj = xarray_obj
 
     @property
-    def dekads(self):
+    def dekad(self):
         """Time values labeled as dekads"""
         return self._obj.time.to_series().apply(
                     func=self._gen_labels,
@@ -42,7 +42,7 @@ class LabelMaker:
                 ).values
 
     @property
-    def pentads(self):
+    def pentad(self):
         """Time values labeled as pentads"""
         return self._obj.time.to_series().apply(
                     func=self._gen_labels,
