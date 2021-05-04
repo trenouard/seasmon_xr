@@ -6,11 +6,17 @@ import xarray
 import seasmon_xr.src
 
 __all__ = [
+    "Anomalies",
     "IterativeAggregation",
-    "PixelAlgorithms",
     "LabelMaker",
-    "WhittakerSmoother"
+    "PixelAlgorithms",
+    "WhittakerSmoother",
 ]
+
+class AccessorBase:
+    """Base class for accessors"""
+    def __init__(self, xarray_obj):
+        self._obj = xarray_obj
 
 @xarray.register_dataarray_accessor("labeler")
 class LabelMaker:
@@ -57,11 +63,8 @@ class LabelMaker:
 
 @xarray.register_dataset_accessor("iteragg")
 @xarray.register_dataarray_accessor("iteragg")
-class IterativeAggregation:
+class IterativeAggregation(AccessorBase):
     """Class to aggregate multiple coordinate slices"""
-    def __init__(self, xarray_obj):
-        self._obj = xarray_obj
-
     def sum(self,
             n: int = None,
             dim: str = "time",
@@ -126,6 +129,18 @@ class IterativeAggregation:
                     _obj = _obj.expand_dims(time=[self._obj.time[ii-1].values])
                 yield _obj
 
+@xarray.register_dataset_accessor("anom")
+@xarray.register_dataarray_accessor("anom")
+class Anomalies(AccessorBase):
+    """Class to calculate anomalies from reference"""
+    def ratio(self, reference, offset=0):
+        """Calculate anomaly as ratio"""
+        return (self._obj + offset) / (reference + offset) * 100
+
+    def diff(self, reference, offset=0):
+        """Calculate anomaly as difference"""
+        return (self._obj + offset) - (reference + offset)
+
 @xarray.register_dataset_accessor("whit")
 @xarray.register_dataarray_accessor("whit")
 class WhittakerSmoother:
@@ -137,9 +152,7 @@ class WhittakerSmoother:
                 "'.whit' can only be applied to datasets / dataarrays "
                 "with 'time' dimension!"
             )
-
         self._obj = xarray_obj
-
 
     def whits(self,
               nodata: Union[int, float],

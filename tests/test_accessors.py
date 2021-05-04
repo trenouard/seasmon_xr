@@ -61,6 +61,10 @@ def test_labels_pentad_single(darr):
         ['200001p1']
     )
 
+def test_labels_exception(darr):
+    with pytest.raises(TypeError):
+        _ = darr.x.labeler.dekad
+
 def test_algo_lroo(darr):
     _res = np.array([[3, 0],
                     [4, 2]],
@@ -71,6 +75,23 @@ def test_algo_lroo(darr):
     assert isinstance(darr_lroo, xr.DataArray)
     np.testing.assert_array_equal(darr_lroo, _res)
 
+def test_anom_ratio(darr):
+    _res = np.array([[ 85., 443.],
+                     [ 18.,  83.]])
+
+    np.testing.assert_array_equal(
+        darr.isel(time=0).anom.ratio(darr.isel(time=1)).round(),
+        _res
+    )
+
+def test_anom_diff(darr):
+    _res = np.array([[ -9,  72],
+                     [-68, -15]])
+
+    np.testing.assert_array_equal(
+        darr.isel(time=0).anom.diff(darr.isel(time=1)),
+        _res
+    )
 
 def test_algo_autocorr(darr):
     _res = np.array([[-0.7395127 , -0.69477093],
@@ -91,6 +112,10 @@ def test_algo_spi_transp(darr, res_spi):
     _res = _darr.algo.spi()
     assert isinstance(_res, xr.DataArray)
     np.testing.assert_array_equal(_res, res_spi)
+
+def test_algo_exception(darr):
+    with pytest.raises(ValueError):
+        _ = darr.isel(time=0).algo
 
 def test_agg_sum_1(darr):
     n = 0
@@ -362,3 +387,7 @@ def test_whit_whitint(darr):
         res[0,0,:],
         xx_int.data.values
     )
+
+def test_whit_exception(darr):
+    with pytest.raises(ValueError):
+        _ = darr.isel(time=0).whit
