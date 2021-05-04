@@ -27,8 +27,10 @@ class LabelMaker:
             )
 
         if not hasattr(xarray_obj, "time"):
-            raise ValueError("Data array is missing .dt accessor!")
+            raise ValueError("Data array is missing 'time' accessor!")
 
+        if not "time" in xarray_obj.dims:
+            xarray_obj = xarray_obj.expand_dims("time")
         self._obj = xarray_obj
 
     @property

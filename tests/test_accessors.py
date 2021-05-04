@@ -40,11 +40,25 @@ def test_labels_dekad(darr):
         ['200001d1', '200001d2', '200001d3', '200001d3', '200002d1']
     )
 
+def test_labels_dekad_single(darr):
+
+    np.testing.assert_array_equal(
+        darr.isel(time=0).time.labeler.dekads,
+        ['200001d1']
+    )
+
 def test_labels_pentad(darr):
 
     np.testing.assert_array_equal(
         darr.time.labeler.pentads,
         ['200001p1', '200001p3', '200001p5', '200001p6', '200002p2']
+    )
+
+def test_labels_pentad_single(darr):
+
+    np.testing.assert_array_equal(
+        darr.isel(time=0).time.labeler.pentads,
+        ['200001p1']
     )
 
 def test_algo_lroo(darr):
