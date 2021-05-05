@@ -75,6 +75,16 @@ def test_algo_lroo(darr):
     assert isinstance(darr_lroo, xr.DataArray)
     np.testing.assert_array_equal(darr_lroo, _res)
 
+def test_algo_croo(darr):
+    _res = np.array([[1, 0],
+                    [4, 0]],
+                    dtype="uint8"
+    )
+
+    darr_croo = ((darr>30)*1).algo.croo()
+    assert isinstance(darr_croo, xr.DataArray)
+    np.testing.assert_array_equal(darr_croo, _res)
+
 def test_anom_ratio(darr):
     _res = np.array([[ 85., 443.],
                      [ 18.,  83.]])

@@ -328,6 +328,15 @@ class PixelAlgorithms:
                     dask="parallelized"
                 )
 
+    def croo(self):
+        """Current run of ones along time dimension"""
+        xsort = self._obj.sortby('time', ascending=False)
+        xtemp = xsort.where(xsort == 1).cumsum('time', skipna=False)
+        xtemp = xtemp.where(~xtemp.isnull(), 0).argmax('time')
+        x_crbt = xtemp + xsort.isel(time=0)
+
+        return x_crbt
+
     def lroo(self):
         """Longest run of ones along time dimension"""
 
