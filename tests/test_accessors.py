@@ -274,6 +274,20 @@ def test_agg_mean_3(darr):
         n += 1
     assert n == 3
 
+def test_agg_full_3(darr):
+    n = 0
+    for _x in darr.iteragg.full(3):
+        np.testing.assert_array_equal(
+            _x.squeeze(),
+            darr.sel(time=slice(_x.attrs['agg_start'], _x.attrs['agg_stop']))
+        )
+        assert _x.time.size == 3
+        assert _x.attrs['agg_n'] == 3
+        assert str(_x.time.to_index()[0]) == _x.attrs['agg_start']
+        assert str(_x.time.to_index()[-1]) == _x.attrs['agg_stop']
+        n += 1
+    assert n == 3
+
 def test_whit_whits_s(darr):
     _res = np.array([[[54, 54, 55, 56, 60],
                     [74, 60, 48, 35, 24]],

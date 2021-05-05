@@ -85,6 +85,16 @@ class IterativeAggregation(AccessorBase):
 
         yield from self._iteragg(np.nanmean, n, dim, begin, end, method)
 
+    def full(self,
+            n: int = None,
+            dim: str = "time",
+            begin: Union[str, int, float] = None,
+            end: Union[str, int, float] = None,
+            method: str = None):
+        """Generate mean-aggregations over dim for slices of n"""
+
+        yield from self._iteragg(None, n, dim, begin, end, method)
+
     def _iteragg(self, func, n, dim, begin, end, method):
 
         if dim not in self._obj.dims:
@@ -118,15 +128,17 @@ class IterativeAggregation(AccessorBase):
                 break
             if jj >= 0 and (ii-jj) == n:
                 region = {dim: slice(jj, ii)}
-                _obj = self._obj[region].reduce(func, dim)
-                _obj = _obj.assign_attrs({
+                _obj = self._obj[region].assign_attrs({
                     "agg_start": str(_index[jj]),
                     "agg_stop": str(_index[ii-1]),
                     "agg_n": _index[jj:ii].size
                 })
 
-                if dim == "time":
-                    _obj = _obj.expand_dims(time=[self._obj.time[ii-1].values])
+                if func is not None:
+                    _obj = _obj.reduce(func, dim, keep_attrs=True)
+                    if dim == "time":
+                        _obj = _obj.expand_dims(time=[self._obj.time[ii-1].values])
+
                 yield _obj
 
 @xarray.register_dataset_accessor("anom")
