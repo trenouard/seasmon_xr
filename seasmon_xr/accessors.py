@@ -327,9 +327,6 @@ class PixelAlgorithms:
                 "'.algo' can only be applied to datasets / dataarrays "
                 "with 'time' dimension!"
             )
-
-        if xarray_obj.dims[0] != "time":
-            xarray_obj = xarray_obj.transpose("time", ...)
         self._obj = xarray_obj
 
     def spi(self):
@@ -337,6 +334,8 @@ class PixelAlgorithms:
         return xarray.apply_ufunc(
                     seasmon_xr.src.spifun,
                     self._obj,
+                    input_core_dims=[["time"]],
+                    output_core_dims=[["time"]],
                     dask="parallelized"
                 )
 
