@@ -119,7 +119,6 @@ def spifun(x):
         for ci in range(c):
 
             xt = x[ri, ci, :]
-            print(xt)
             valid_ix = []
 
             xts = 0
