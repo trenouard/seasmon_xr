@@ -146,7 +146,7 @@ def spifun(x):
             s = log(xtsbar) - (logs / n_valid)
 
             if s == 0:
-                x[:, ri, ci] = -9999
+                x[ri, ci, :] = -9999
                 continue
 
             a_est = (3-s + sqrt((s-3)**2 + 24*s)) / (12*s)
