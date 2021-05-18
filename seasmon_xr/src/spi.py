@@ -113,12 +113,13 @@ def spifun(x):
     Copyright (c) 2001-2002 Enthought, Inc.  2003-2019, SciPy Developers.
     All rights reserved.
     """
-    t,r,c = x.shape
+    r,c,t = x.shape
 
     for ri in range(r):
         for ci in range(c):
 
-            xt = x[:, ri, ci]
+            xt = x[ri, ci, :]
+            print(xt)
             valid_ix = []
 
             xts = 0
@@ -133,7 +134,7 @@ def spifun(x):
             p_zero = 1 - (n_valid / t)
 
             if p_zero > 0.9:
-                x[:, ri, ci] = -9999
+                x[ri, ci, :] = -9999
                 continue
 
             xtsbar = xts / n_valid
@@ -155,7 +156,7 @@ def spifun(x):
             a = brentq(xa, xb, s)
 
             if a == 0:
-                x[:, ri, ci] = -9999
+                x[ri, ci, :] = -9999
                 continue
 
             scale = xtsbar / a
@@ -170,6 +171,6 @@ def spifun(x):
 
             np.round_(spi, 0, spi)
 
-            x[:,ri, ci] = spi[:]
+            x[ri, ci, :] = spi[:]
 
     return x

@@ -22,16 +22,10 @@ def darr():
 
 @pytest.fixture
 def res_spi():
-    return np.array([[[  217,  1401],
-                    [-1673,   988]],
-                    [[  397,  -979],
-                    [  943,  1178]],
-                    [[  644,   979],
-                    [ 1061,   103]],
-                    [[-1947,  -920],
-                    [  116, -1139]],
-                    [[  847,  -508],
-                    [ -424, -1139]]])
+    return np.array([[[217, 397, 644, -1947, 847],
+                      [1401, -979,  979, -920, -508]],
+                     [[-1673, 943, 1061, 116, -424],
+                      [988, 1178, 103, -1139, -1139]]])
 
 def test_labels_dekad(darr):
 
@@ -113,7 +107,7 @@ def test_algo_autocorr(darr):
     np.testing.assert_almost_equal(darr_autocorr, _res)
 
 def test_algo_spi(darr, res_spi):
-    _res = darr.algo.spi()
+    _res = darr.algo.spi()#.transpose("time", ...)
     assert isinstance(_res, xr.DataArray)
     np.testing.assert_array_equal(_res, res_spi)
 

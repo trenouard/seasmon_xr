@@ -32,10 +32,10 @@ def test_brentq():
     assert x == pytest.approx(1.083449238500003)
 
 def test_spi(ts):
-    xspi = spifun(ts.reshape(-1,1,1))
-    assert xspi.shape == (10, 1, 1)
+    xspi = spifun(ts.reshape(1,1, -1))
+    assert xspi.shape == (1, 1, 10)
     np.testing.assert_array_equal(
-        xspi[:, 0, 0],
+        xspi[0, 0, :],
         [
             -382.,
             1654.,
