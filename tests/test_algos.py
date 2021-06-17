@@ -72,6 +72,25 @@ def test_spi_nofit(ts):
         ]
     )
 
+def test_spi_selfit(ts):
+    xspi = spifun(ts.reshape(1,1, -1), cal_start=0, cal_stop=3)
+    assert xspi.shape == (1, 1, 10)
+    np.testing.assert_array_equal(
+        xspi[0, 0, :],
+        [
+           -1211.0,
+            1236.0,
+            -32.0,
+            -492.0,
+            -2099.0,
+            -2099.0,
+            -2833.0,
+            572.0,
+            -484.0,
+            -120.0,
+        ]
+    )
+
 def test_ws2dgu(ts):
     _ts = ts*10
     z = ws2dgu(_ts, 10, 0)

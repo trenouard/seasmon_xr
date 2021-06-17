@@ -117,6 +117,44 @@ def test_algo_spi_transp(darr, res_spi):
     assert isinstance(_res, xr.DataArray)
     np.testing.assert_array_equal(_res, res_spi)
 
+def test_algo_spi_decoupled(darr, res_spi):
+
+    _res = darr.algo.spi(
+        calibration_start="2000-01-01",
+        calibration_stop="2000-02-10"
+    )
+
+    assert isinstance(_res, xr.DataArray)
+    np.testing.assert_array_equal(_res, res_spi)
+
+def test_algo_spi_decoupled(darr):
+    res_spi = np.array([[[-1155,  -129,  1284, -13563, 2447],
+                     [  905, -1391,   501, -1334, -932]],
+                    [[-1408,   670,   763,    15, -412],
+                     [  502,   902, -1392, -4124,-4124]]])
+    
+    _res = darr.algo.spi(
+        calibration_start="2000-01-01",
+        calibration_stop="2000-01-31"
+    )
+
+    assert isinstance(_res, xr.DataArray)
+    np.testing.assert_array_equal(_res, res_spi)
+
+def test_algo_spi_decoupled_err(darr):
+
+    with pytest.raises(ValueError):
+        _res = darr.algo.spi(
+            calibration_start="2021-01-01",
+            calibration_stop="2000-01-31"
+        )
+
+    with pytest.raises(ValueError):
+        _res = darr.algo.spi(
+            calibration_start="2000-01-01",
+            calibration_stop="2021-01-31"
+        )
+
 def test_algo_exception(darr):
     with pytest.raises(ValueError):
         _ = darr.isel(time=0).algo
