@@ -142,10 +142,17 @@ def gammafit(x):
     return (a, b)
 
 @numba.njit
-def spifun(x, a=None, b=None):
+def spifun(x, a=None, b=None, cal_start=None, cal_stop=None):
     """Calculate SPI with gamma distribution for 3d array
     """
+    y = np.full_like(x, -9999)
     r,c,t = x.shape
+    
+    if cal_start is None:
+        cal_start = 0
+    
+    if cal_stop is None:
+        cal_stop = t
 
     for ri in range(r):
         for ci in range(c):
@@ -162,16 +169,16 @@ def spifun(x, a=None, b=None):
             p_zero = 1 - (n_valid / t)
 
             if p_zero > 0.9:
-                x[ri, ci, :] = -9999
+                y[ri, ci, :] = -9999
                 continue
 
             if a is None or b is None:
-                alpha, beta = gammafit(xt)
+                alpha, beta = gammafit(xt[cal_start:cal_stop])
             else:
                 alpha, beta = (a, b)
             
             if alpha == 0 or beta == 0:
-                x[ri, ci, :] = -9999
+                y[ri, ci, :] = -9999
                 continue
 
             spi = np.full(t, p_zero, dtype=numba.float64)
@@ -184,6 +191,6 @@ def spifun(x, a=None, b=None):
 
             np.round_(spi, 0, spi)
 
-            x[ri, ci, :] = spi[:]
+            y[ri, ci, :] = spi[:]
 
-    return x
+    return y
