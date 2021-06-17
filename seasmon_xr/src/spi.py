@@ -105,7 +105,7 @@ def brentq(xa, xb, s):
     return xcur
 
 @numba.njit
-def gammafit(x, ix):
+def gammafit(x):
     """Calculate gamma distribution parameters for timeseries
     
     Adapted from:
@@ -114,12 +114,16 @@ def gammafit(x, ix):
     All rights reserved.
     """
 
-    n = len(ix)
+    n = 0
     xts = 0
     logs = 0
-    for ii in ix:
-        xts += x[ii]
-        logs+= log(x[ii])
+
+    for xx in x:
+        if xx > 0:
+            xts += xx
+            logs+= log(xx)
+            n +=1
+
     xtsbar = xts / n
     s = log(xtsbar) - (logs / n)
     
@@ -162,7 +166,7 @@ def spifun(x, a=None, b=None):
                 continue
 
             if a is None or b is None:
-                alpha, beta = gammafit(xt, valid_ix)
+                alpha, beta = gammafit(xt)
             else:
                 alpha, beta = (a, b)
             
