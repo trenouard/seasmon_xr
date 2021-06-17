@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from seasmon_xr.src import autocorr, lroo, spifun, ws2dgu, ws2dpgu, ws2doptv, ws2doptvp, ws2doptvplc
-from seasmon_xr.src.spi import brentq
+from seasmon_xr.src.spi import brentq, gammafit
 
 
 @pytest.fixture
@@ -22,7 +22,6 @@ def test_autocorr(ts):
     ac = autocorr(ts.reshape(1,1,-1))
     np.testing.assert_almost_equal(ac, 0.00398337)
 
-
 def test_brentq():
     x = brentq(
         xa=0.6446262296476516,
@@ -30,6 +29,10 @@ def test_brentq():
         s=0.5278852360624721
     )
     assert x == pytest.approx(1.083449238500003)
+
+def test_gammafit(ts):
+    parameters = gammafit(ts)
+    assert parameters == pytest.approx((1.083449238500003, 0.9478709674697126))
 
 def test_spi(ts):
     xspi = spifun(ts.reshape(1,1, -1))
@@ -48,6 +51,44 @@ def test_spi(ts):
             213.,
             514.
          ]
+    )
+
+def test_spi_nofit(ts):
+    xspi = spifun(ts.reshape(1,1, -1), a=1, b=2)
+    assert xspi.shape == (1, 1, 10)
+    np.testing.assert_array_equal(
+        xspi[0, 0, :],
+        [
+           -809.0,
+            765.0,
+            -44.0,
+            -341.0,
+            -1396.0,
+            -1396.0,
+            -1889.0,
+            343.0,
+            -336.0,
+            -101.0
+        ]
+    )
+
+def test_spi_selfit(ts):
+    xspi = spifun(ts.reshape(1,1, -1), cal_start=0, cal_stop=3)
+    assert xspi.shape == (1, 1, 10)
+    np.testing.assert_array_equal(
+        xspi[0, 0, :],
+        [
+           -1211.0,
+            1236.0,
+            -32.0,
+            -492.0,
+            -2099.0,
+            -2099.0,
+            -2833.0,
+            572.0,
+            -484.0,
+            -120.0,
+        ]
     )
 
 def test_ws2dgu(ts):

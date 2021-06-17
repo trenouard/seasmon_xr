@@ -105,15 +105,54 @@ def brentq(xa, xb, s):
     return xcur
 
 @numba.njit
-def spifun(x):
-    """Calculate SPI with gamma distribution for 3d array
-
-    Fitting gamma distribution adapted from:
+def gammafit(x):
+    """Calculate gamma distribution parameters for timeseries
+    
+    Adapted from:
     https://github.com/scipy/scipy/blob/f2ef65dc7f00672496d7de6154744fee55ef95e9/scipy/stats/_continuous_distns.py#L2554
     Copyright (c) 2001-2002 Enthought, Inc.  2003-2019, SciPy Developers.
     All rights reserved.
     """
+
+    n = 0
+    xts = 0
+    logs = 0
+
+    for xx in x:
+        if xx > 0:
+            xts += xx
+            logs+= log(xx)
+            n +=1
+
+    xtsbar = xts / n
+    s = log(xtsbar) - (logs / n)
+    
+    if s == 0:
+        return (0, 0)
+
+    a_est = (3-s + sqrt((s-3)**2 + 24*s)) / (12*s)
+    xa = a_est * (1 - 0.4)
+    xb = a_est * (1 + 0.4)
+    a = brentq(xa, xb, s)
+    if a == 0:
+        return (0, 0)
+              
+    b = xtsbar / a
+    
+    return (a, b)
+
+@numba.njit
+def spifun(x, a=None, b=None, cal_start=None, cal_stop=None):
+    """Calculate SPI with gamma distribution for 3d array
+    """
+    y = np.full_like(x, -9999)
     r,c,t = x.shape
+    
+    if cal_start is None:
+        cal_start = 0
+    
+    if cal_stop is None:
+        cal_stop = t
 
     for ri in range(r):
         for ci in range(c):
@@ -121,11 +160,8 @@ def spifun(x):
             xt = x[ri, ci, :]
             valid_ix = []
 
-            xts = 0
-
             for tix in range(t):
                 if xt[tix] > 0:
-                    xts += xt[tix]
                     valid_ix.append(tix)
 
             n_valid = len(valid_ix)
@@ -133,43 +169,28 @@ def spifun(x):
             p_zero = 1 - (n_valid / t)
 
             if p_zero > 0.9:
-                x[ri, ci, :] = -9999
+                y[ri, ci, :] = -9999
                 continue
 
-            xtsbar = xts / n_valid
-
-            logs = 0
-
-            for tix in valid_ix:
-                logs+= log(xt[tix])
-
-            s = log(xtsbar) - (logs / n_valid)
-
-            if s == 0:
-                x[ri, ci, :] = -9999
+            if a is None or b is None:
+                alpha, beta = gammafit(xt[cal_start:cal_stop])
+            else:
+                alpha, beta = (a, b)
+            
+            if alpha == 0 or beta == 0:
+                y[ri, ci, :] = -9999
                 continue
-
-            a_est = (3-s + sqrt((s-3)**2 + 24*s)) / (12*s)
-            xa = a_est * (1 - 0.4)
-            xb = a_est * (1 + 0.4)
-            a = brentq(xa, xb, s)
-
-            if a == 0:
-                x[ri, ci, :] = -9999
-                continue
-
-            scale = xtsbar / a
 
             spi = np.full(t, p_zero, dtype=numba.float64)
 
             for tix in valid_ix:
-                spi[tix] = p_zero + ((1-p_zero) * sc.gammainc(a, xt[tix]/scale))
+                spi[tix] = p_zero + ((1-p_zero) * sc.gammainc(alpha, xt[tix]/beta))
 
             for tix in range(t):
                 spi[tix] = (sc.ndtri(spi[tix]) * 1000)
 
             np.round_(spi, 0, spi)
 
-            x[ri, ci, :] = spi[:]
+            y[ri, ci, :] = spi[:]
 
-    return x
+    return y
