@@ -329,11 +329,32 @@ class PixelAlgorithms:
             )
         self._obj = xarray_obj
 
-    def spi(self):
+    def spi(self,
+            calibration_start=None,
+            calibration_stop=None,
+        ):
         """Calculates the SPI along the time dimension"""
+
+        tix = self._obj.get_index("time")
+        if calibration_start is not None:
+            try:
+                calibration_start = tix.get_loc(calibration_start)
+            except KeyError:
+                raise ValueError("Calibration start value not found in time index!")
+
+        if calibration_stop is not None:
+            try:
+                calibration_stop = tix.get_loc(calibration_stop)
+            except KeyError:
+                raise ValueError("Calibration stop value not found in time index!")
+
         return xarray.apply_ufunc(
                     seasmon_xr.src.spifun,
                     self._obj,
+                    kwargs={
+                        "cal_start": calibration_start,
+                        "cal_stop": calibration_stop,
+                    },
                     input_core_dims=[["time"]],
                     output_core_dims=[["time"]],
                     dask="parallelized"
