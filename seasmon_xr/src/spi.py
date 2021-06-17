@@ -138,7 +138,7 @@ def gammafit(x, ix):
     return (a, b)
 
 @numba.njit
-def spifun(x, alpha=None, beta=None):
+def spifun(x, a=None, b=None):
     """Calculate SPI with gamma distribution for 3d array
     """
     r,c,t = x.shape
@@ -160,9 +160,11 @@ def spifun(x, alpha=None, beta=None):
             if p_zero > 0.9:
                 x[ri, ci, :] = -9999
                 continue
-            
-            if alpha is None or beta is None:
+
+            if a is None or b is None:
                 alpha, beta = gammafit(xt, valid_ix)
+            else:
+                alpha, beta = (a, b)
             
             if alpha == 0 or beta == 0:
                 x[ri, ci, :] = -9999
