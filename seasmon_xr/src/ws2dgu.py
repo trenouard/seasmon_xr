@@ -16,19 +16,23 @@ def ws2dgu(y, lmda, nodata, out):
         Smoothed time-series array z
     """
 
-    m = y.shape[0]
-    w = numpy.zeros(y.shape, dtype=float64)
+    if lmda != 0.0:
 
-    n = 0
-    for ii in range(m):
-        if y[ii] == nodata:
-            w[ii] = 0
+        m = y.shape[0]
+        w = numpy.zeros(y.shape, dtype=float64)
+
+        n = 0
+        for ii in range(m):
+            if y[ii] == nodata:
+                w[ii] = 0
+            else:
+                n += 1
+                w[ii] = 1
+
+        if n > 1:
+            z = ws2d(y, lmda, w)
+            numpy.round_(z, 0, out)
         else:
-            n += 1
-            w[ii] = 1
-
-    if n > 1:
-        z = ws2d(y, lmda, w)
-        numpy.round_(z, 0, out)
+            out[:] = y[:]
     else:
         out[:] = y[:]
