@@ -132,7 +132,7 @@ def test_algo_spi_decoupled(darr):
                      [  905, -1391,   501, -1334, -932]],
                     [[-1408,   670,   763,    15, -412],
                      [  502,   902, -1392, -4124,-4124]]])
-    
+
     _res = darr.algo.spi(
         calibration_start="2000-01-01",
         calibration_stop="2000-01-31"
@@ -338,21 +338,50 @@ def test_whit_whits_s(darr):
 
 def test_whit_whits_sg(darr):
     sg = np.full((2,2), -0.5)
-    _res = np.array([[[76, 32, 35, 75, 61],
-                    [78, 69, 31, 27, 36]],
-                    [[8, 65, 109, 91, 4],
-                    [ 93, 43, 36, 25, -10]]],
-                    dtype="int16",
+    _res = np.array([[[55, 59, 55, 38, 72],
+                    [82, 49, 50, 34, 27]],
+                    [[26, 71, 81, 61, 39],
+                    [80, 69, 33,  8, -3]]],
+                    dtype="int16"
     )
     _darr = darr.whit.whits(nodata=0, sg=sg)
     np.testing.assert_array_equal(_darr, _res)
 
     y = darr[:,0,0].astype("float64").data
     w = ((y!=0)*1).astype("float64")
-    l = -0.5
+    l = 10**-0.5
     z = np.rint(seasmon_xr.src.ws2d.ws2d(y,l,w))
 
     np.testing.assert_array_equal(_darr[0,0,:].data, z)
+
+def test_whit_whits_sg_zeros(darr):
+    sg = np.full((2,2), -np.inf)
+    _res = darr.transpose(...,"time")
+    _darr = darr.whit.whits(nodata=0, sg=sg)
+    np.testing.assert_array_equal(_darr, _res)
+
+def test_whit_whits_sg_p(darr):
+    sg = np.full((2,2), -0.5)
+    _res = np.array([[[ 56,  64,  70,  73,  85],
+                    [ 91,  77,  67,  49,  30]],
+                    [[ 60,  79,  83,  72,  55],
+                    [100,  80,  51,  23,   0]]],
+                    dtype="int16"
+    )
+    _darr = darr.whit.whits(nodata=0, sg=sg, p=0.90)
+    np.testing.assert_array_equal(_darr, _res)
+
+    y = darr[:,0,0].astype("float64").data
+    l = 10**-0.5
+    z = np.rint(seasmon_xr.src.ws2dpgu(y, l, 0, 0.90))
+
+    np.testing.assert_array_equal(_darr[0,0,:].data, z)
+
+def test_whit_whits_sg_p_zeros(darr):
+    sg = np.full((2,2), -np.inf)
+    _res = darr.transpose(...,"time")
+    _darr = darr.whit.whits(nodata=0, sg=sg, p=0.90)
+    np.testing.assert_array_equal(_darr, _res)
 
 def test_whit_whitsvc(darr):
     srange = np.arange(-2, 2)
