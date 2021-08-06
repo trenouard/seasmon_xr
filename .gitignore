@@ -176,3 +176,6 @@ cython_debug/
 
 # force include
 !src/assets/lib/
+
+# vscode
+.vscode
