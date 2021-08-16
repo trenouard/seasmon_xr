@@ -341,12 +341,22 @@ class PixelAlgorithms:
         calstart_ix = 0
         if calibration_start is not None:
             calstart = pd.Timestamp(calibration_start)
+            if calstart > tix[-1]:
+                raise ValueError("Calibration start cannot be greater than last timestamp!")
             calstart_ix = tix.get_loc(calstart, method="bfill")
 
         calstop_ix = tix.size
         if calibration_stop is not None:
             calstop = pd.Timestamp(calibration_stop)
+            if calstop < tix[0]:
+                raise ValueError("Calibration stop cannot be smaller than first timestamp!")
             calstop_ix = tix.get_loc(calstop, method="ffill") + 1
+
+        if calstart_ix >= calstop_ix:
+            raise ValueError("calibration_start < calibration_stop!")
+
+        if abs(calstop_ix - calstart_ix) <= 1:
+            raise ValueError("Timeseries too short for calculating SPI. Please adjust calibration period!")
 
         res = xarray.apply_ufunc(
                 seasmon_xr.src.spifun,
