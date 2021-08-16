@@ -1,6 +1,7 @@
 from typing import Union
 
 import numpy as np
+import pandas as pd
 import xarray
 
 import seasmon_xr.src
@@ -336,29 +337,34 @@ class PixelAlgorithms:
         """Calculates the SPI along the time dimension"""
 
         tix = self._obj.get_index("time")
+
+        calstart_ix = 0
         if calibration_start is not None:
-            try:
-                calibration_start = tix.get_loc(calibration_start)
-            except KeyError:
-                raise ValueError("Calibration start value not found in time index!")
+            calstart = pd.Timestamp(calibration_start)
+            calstart_ix = tix.get_loc(calstart, method="bfill")
 
+        calstop_ix = tix.size
         if calibration_stop is not None:
-            try:
-                calibration_stop = tix.get_loc(calibration_stop)
-            except KeyError:
-                raise ValueError("Calibration stop value not found in time index!")
+            calstop = pd.Timestamp(calibration_stop)
+            calstop_ix = tix.get_loc(calstop, method="ffill")
 
-        return xarray.apply_ufunc(
-                    seasmon_xr.src.spifun,
-                    self._obj,
-                    kwargs={
-                        "cal_start": calibration_start,
-                        "cal_stop": calibration_stop,
-                    },
-                    input_core_dims=[["time"]],
-                    output_core_dims=[["time"]],
-                    dask="parallelized"
-                )
+        cal_ix = np.arange(calstart_ix, calstop_ix)
+
+        res = xarray.apply_ufunc(
+                seasmon_xr.src.spifun,
+                self._obj,
+                kwargs={"cal_ix": cal_ix},
+                input_core_dims=[["time"]],
+                output_core_dims=[["time"]],
+                dask="parallelized"
+            )
+
+        res.attrs.update({
+            "spi_calibration_start": str(tix[cal_ix[0]].date()),
+            "spi_calibration_stop": str(tix[cal_ix[-1]+1].date())
+        })
+
+        return res
 
     def croo(self):
         """Current run of ones along time dimension"""
