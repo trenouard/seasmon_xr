@@ -346,22 +346,23 @@ class PixelAlgorithms:
         calstop_ix = tix.size
         if calibration_stop is not None:
             calstop = pd.Timestamp(calibration_stop)
-            calstop_ix = tix.get_loc(calstop, method="ffill")
-
-        cal_ix = np.arange(calstart_ix, calstop_ix)
+            calstop_ix = tix.get_loc(calstop, method="ffill") + 1
 
         res = xarray.apply_ufunc(
                 seasmon_xr.src.spifun,
                 self._obj,
-                kwargs={"cal_ix": cal_ix},
+                kwargs={
+                    "cal_start": calibration_start,
+                    "cal_stop": calibration_stop,
+                    },
                 input_core_dims=[["time"]],
                 output_core_dims=[["time"]],
                 dask="parallelized"
             )
 
         res.attrs.update({
-            "spi_calibration_start": str(tix[cal_ix[0]].date()),
-            "spi_calibration_stop": str(tix[cal_ix[-1]+1].date())
+            "spi_calibration_start": str(tix[calstart_ix].date()),
+            "spi_calibration_stop": str(tix[calstop_ix].date())
         })
 
         return res
