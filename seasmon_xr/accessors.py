@@ -352,17 +352,18 @@ class PixelAlgorithms:
                 seasmon_xr.src.spifun,
                 self._obj,
                 kwargs={
-                    "cal_start": calibration_start,
-                    "cal_stop": calibration_stop,
-                    },
+                    "cal_start": calstart_ix,
+                    "cal_stop": calstop_ix,
+                },
                 input_core_dims=[["time"]],
                 output_core_dims=[["time"]],
-                dask="parallelized"
+                dask="parallelized",
+                output_dtypes=['int16']
             )
 
         res.attrs.update({
             "spi_calibration_start": str(tix[calstart_ix].date()),
-            "spi_calibration_stop": str(tix[calstop_ix].date())
+            "spi_calibration_stop": str(tix[calstop_ix-1].date())
         })
 
         return res
