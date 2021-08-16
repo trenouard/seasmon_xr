@@ -1,5 +1,5 @@
 """Tests for xarray accessors"""
-#pylint: disable=redefined-outer-name,unused-import,no-member,no-name-in-module
+#pylint: disable=redefined-outer-name,unused-import,no-member,no-name-in-module,missing-function-docstring
 import numpy as np
 import pandas as pd
 import pytest
@@ -107,7 +107,7 @@ def test_algo_autocorr(darr):
     np.testing.assert_almost_equal(darr_autocorr, _res)
 
 def test_algo_spi(darr, res_spi):
-    _res = darr.algo.spi()#.transpose("time", ...)
+    _res = darr.algo.spi()
     assert isinstance(_res, xr.DataArray)
     np.testing.assert_array_equal(_res, res_spi)
 
@@ -117,8 +117,20 @@ def test_algo_spi_transp(darr, res_spi):
     assert isinstance(_res, xr.DataArray)
     np.testing.assert_array_equal(_res, res_spi)
 
-def test_algo_spi_decoupled(darr, res_spi):
+def test_algo_spi_attrs_default(darr):
+    _res = darr.algo.spi()
+    assert _res.attrs["spi_calibration_start"] == str(darr.time.dt.date[0].values)
+    assert _res.attrs["spi_calibration_stop"] == str(darr.time.dt.date[-1].values)
 
+def test_algo_spi_attrs_start(darr):
+    _res = darr.algo.spi(calibration_start="2000-01-02")
+    assert _res.attrs["spi_calibration_start"] == "2000-01-11"
+
+def test_algo_spi_attrs_stop(darr):
+    _res = darr.algo.spi(calibration_stop="2000-02-09")
+    assert _res.attrs["spi_calibration_stop"] == "2000-01-31"
+
+def test_algo_spi_decoupled_1(darr, res_spi):
     _res = darr.algo.spi(
         calibration_start="2000-01-01",
         calibration_stop="2000-02-10"
@@ -127,11 +139,14 @@ def test_algo_spi_decoupled(darr, res_spi):
     assert isinstance(_res, xr.DataArray)
     np.testing.assert_array_equal(_res, res_spi)
 
-def test_algo_spi_decoupled(darr):
-    res_spi = np.array([[[-1155,  -129,  1284, -13563, 2447],
-                     [  905, -1391,   501, -1334, -932]],
-                    [[-1408,   670,   763,    15, -412],
-                     [  502,   902, -1392, -4124,-4124]]])
+    assert _res.attrs["spi_calibration_start"] == "2000-01-01"
+    assert _res.attrs["spi_calibration_stop"] == "2000-02-10"
+
+def test_algo_spi_decoupled_2(darr):
+    res_spi = np.array([[[  406,   583,   826, -1704,  1028],
+                      [ 1182, -1019,   792,  -964,  -581]],
+                     [[-1628,   770,   878,    13,  -480],
+                      [  795,  1001,  -173, -1550, -1550]]])
 
     _res = darr.algo.spi(
         calibration_start="2000-01-01",
@@ -141,18 +156,49 @@ def test_algo_spi_decoupled(darr):
     assert isinstance(_res, xr.DataArray)
     np.testing.assert_array_equal(_res, res_spi)
 
-def test_algo_spi_decoupled_err(darr):
+    assert _res.attrs["spi_calibration_start"] == "2000-01-01"
+    assert _res.attrs["spi_calibration_stop"] == "2000-01-31"
 
+def test_algo_spi_decoupled_3(darr):
+    res_spi = np.array([[[  240,   401,   622, -1706,   804],
+                         [ 2213,  -790,  1675,  -717,  -201]],
+                        [[-3454,   852,  1044,  -504, -1390],
+                         [ 1230,  1427,   320,  -925,  -925]]])
+
+    _res = darr.algo.spi(
+        calibration_start="2000-01-11"
+    )
+
+    assert isinstance(_res, xr.DataArray)
+    np.testing.assert_array_equal(_res, res_spi)
+
+    assert _res.attrs["spi_calibration_start"] == "2000-01-11"
+    assert _res.attrs["spi_calibration_stop"] == "2000-02-10"
+
+def test_algo_spi_decoupled_err_1(darr):
     with pytest.raises(ValueError):
         _res = darr.algo.spi(
-            calibration_start="2021-01-01",
-            calibration_stop="2000-01-31"
+            calibration_start="2000-03-01",
         )
 
+def test_algo_spi_decoupled_err_2(darr):
+    with pytest.raises(ValueError):
+        _res = darr.algo.spi(
+            calibration_stop="1999-01-01",
+        )
+
+def test_algo_spi_decoupled_err_3(darr):
     with pytest.raises(ValueError):
         _res = darr.algo.spi(
             calibration_start="2000-01-01",
-            calibration_stop="2021-01-31"
+            calibration_stop="2000-01-01",
+        )
+
+def test_algo_spi_decoupled_err_4(darr):
+    with pytest.raises(ValueError):
+        _res = darr.algo.spi(
+            calibration_start="2000-02-01",
+            calibration_stop="2000-01-01",
         )
 
 def test_algo_exception(darr):
