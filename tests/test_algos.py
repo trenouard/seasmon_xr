@@ -91,6 +91,15 @@ def test_spi_selfit(ts):
         ]
     )
 
+def test_spi_selfit_2(ts):
+    cal_start = 2
+    cal_stop = 8
+
+    a, b = gammafit(ts[cal_start:cal_stop])
+    xspi_ref = spifun(ts.reshape(1,1, -1), a=a, b=b)
+    xspi = spifun(ts.reshape(1,1, -1), cal_start=cal_start, cal_stop=cal_stop)
+    np.testing.assert_equal(xspi, xspi_ref)
+
 def test_ws2dgu(ts):
     _ts = ts*10
     z = ws2dgu(_ts, 10, 0)
