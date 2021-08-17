@@ -107,7 +107,7 @@ def brentq(xa, xb, s):
 @numba.njit
 def gammafit(x):
     """Calculate gamma distribution parameters for timeseries
-    
+
     Adapted from:
     https://github.com/scipy/scipy/blob/f2ef65dc7f00672496d7de6154744fee55ef95e9/scipy/stats/_continuous_distns.py#L2554
     Copyright (c) 2001-2002 Enthought, Inc.  2003-2019, SciPy Developers.
@@ -124,9 +124,12 @@ def gammafit(x):
             logs+= log(xx)
             n +=1
 
+    if n == 0:
+        return (0, 0)
+
     xtsbar = xts / n
     s = log(xtsbar) - (logs / n)
-    
+
     if s == 0:
         return (0, 0)
 
@@ -136,9 +139,9 @@ def gammafit(x):
     a = brentq(xa, xb, s)
     if a == 0:
         return (0, 0)
-              
+
     b = xtsbar / a
-    
+
     return (a, b)
 
 @numba.njit
@@ -147,12 +150,14 @@ def spifun(x, a=None, b=None, cal_start=None, cal_stop=None):
     """
     y = np.full_like(x, -9999)
     r,c,t = x.shape
-    
+
     if cal_start is None:
         cal_start = 0
-    
+
     if cal_stop is None:
         cal_stop = t
+
+    cal_ix = np.arange(cal_start, cal_stop)
 
     for ri in range(r):
         for ci in range(c):
@@ -173,10 +178,10 @@ def spifun(x, a=None, b=None, cal_start=None, cal_stop=None):
                 continue
 
             if a is None or b is None:
-                alpha, beta = gammafit(xt[cal_start:cal_stop])
+                alpha, beta = gammafit(xt[cal_ix])
             else:
                 alpha, beta = (a, b)
-            
+
             if alpha == 0 or beta == 0:
                 y[ri, ci, :] = -9999
                 continue

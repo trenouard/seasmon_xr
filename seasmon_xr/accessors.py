@@ -1,6 +1,7 @@
 from typing import Union
 
 import numpy as np
+import pandas as pd
 import xarray
 
 import seasmon_xr.src
@@ -336,29 +337,46 @@ class PixelAlgorithms:
         """Calculates the SPI along the time dimension"""
 
         tix = self._obj.get_index("time")
+
+        calstart_ix = 0
         if calibration_start is not None:
-            try:
-                calibration_start = tix.get_loc(calibration_start)
-            except KeyError:
-                raise ValueError("Calibration start value not found in time index!")
+            calstart = pd.Timestamp(calibration_start)
+            if calstart > tix[-1]:
+                raise ValueError("Calibration start cannot be greater than last timestamp!")
+            calstart_ix = tix.get_loc(calstart, method="bfill")
 
+        calstop_ix = tix.size
         if calibration_stop is not None:
-            try:
-                calibration_stop = tix.get_loc(calibration_stop)
-            except KeyError:
-                raise ValueError("Calibration stop value not found in time index!")
+            calstop = pd.Timestamp(calibration_stop)
+            if calstop < tix[0]:
+                raise ValueError("Calibration stop cannot be smaller than first timestamp!")
+            calstop_ix = tix.get_loc(calstop, method="ffill") + 1
 
-        return xarray.apply_ufunc(
-                    seasmon_xr.src.spifun,
-                    self._obj,
-                    kwargs={
-                        "cal_start": calibration_start,
-                        "cal_stop": calibration_stop,
-                    },
-                    input_core_dims=[["time"]],
-                    output_core_dims=[["time"]],
-                    dask="parallelized"
-                )
+        if calstart_ix >= calstop_ix:
+            raise ValueError("calibration_start < calibration_stop!")
+
+        if abs(calstop_ix - calstart_ix) <= 1:
+            raise ValueError("Timeseries too short for calculating SPI. Please adjust calibration period!")
+
+        res = xarray.apply_ufunc(
+                seasmon_xr.src.spifun,
+                self._obj,
+                kwargs={
+                    "cal_start": calstart_ix,
+                    "cal_stop": calstop_ix,
+                },
+                input_core_dims=[["time"]],
+                output_core_dims=[["time"]],
+                dask="parallelized",
+                output_dtypes=['int16']
+            )
+
+        res.attrs.update({
+            "spi_calibration_start": str(tix[calstart_ix].date()),
+            "spi_calibration_stop": str(tix[calstop_ix-1].date())
+        })
+
+        return res
 
     def croo(self):
         """Current run of ones along time dimension"""
