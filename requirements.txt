@@ -1,7 +1,7 @@
 numpy==1.20.3
 xarray==0.18.2
-dask==2021.7.2
-distributed==2021.7.2
+dask==2021.7.0
+distributed==2021.7.0
 datacube[s3,performance]==1.8.3
 rasterio>=1.1.7
 bokeh==2.0
