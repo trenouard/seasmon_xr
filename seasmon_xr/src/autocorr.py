@@ -8,9 +8,9 @@ def autocorr(x):
     """Calculates Lag-1 autocorrelation.
     Adapted from https://stackoverflow.com/a/29194624/5997555
     Args:
-        x: 3d data array
+        x: 3d data array (Y,X,T)
     Returns:
-        Lag-1 autocorrelation array
+        Lag-1 autocorrelation array (Y,X)
     """
     r, c, t = x.shape
     z = zeros((r, c), dtype="float32")
