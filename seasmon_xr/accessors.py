@@ -1,6 +1,7 @@
 from typing import Union
 
 import numpy as np
+import dask.array as da
 import pandas as pd
 import xarray
 
@@ -404,10 +405,26 @@ class PixelAlgorithms:
         Returns:
             xarray.DataArray with lag1 autocorrelation
         """
+        xx = self._obj
+        if xx.dims[0] == "time":
+            # merge all time slices if not already
+            if len(xx.chunks[0]) != 1:
+                xx = xx.chunk({'time': -1})
+
+            # I don't know how tell xarray's map_blocks about
+            # changing dtype and losing first dimension, so use
+            # dask version directly
+            data = da.map_blocks(
+                seasmon_xr.src.autocorr_tyx,
+                xx.data,
+                dtype="float32",
+                drop_axis=0)
+            coords = {k: c for k, c in xx.coords.items() if k != "time"}
+            return xarray.DataArray(data=data, dims=xx.dims[1:], coords=coords)
 
         return xarray.apply_ufunc(
                     seasmon_xr.src.autocorr,
-                    self._obj,
+                    xx,
                     input_core_dims=[["time"]],
                     dask="parallelized",
                     output_dtypes=["float32"]

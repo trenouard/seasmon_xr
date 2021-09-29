@@ -1,4 +1,4 @@
-from .autocorr import autocorr
+from .autocorr import autocorr, autocorr_tyx, autocorr_1d
 from .lroo import lroo
 from .spi import spifun
 from .tinterpolate import tinterpolate

@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from seasmon_xr.src import autocorr, lroo, spifun, ws2dgu, ws2dpgu, ws2doptv, ws2doptvp, ws2doptvplc
+from seasmon_xr.src import autocorr, autocorr_tyx, autocorr_1d, lroo, spifun, ws2dgu, ws2dpgu, ws2doptv, ws2doptvp, ws2doptvplc
 from seasmon_xr.src.spi import brentq, gammafit
 
 
@@ -21,6 +21,9 @@ def test_lroo(ts):
 def test_autocorr(ts):
     ac = autocorr(ts.reshape(1,1,-1))
     np.testing.assert_almost_equal(ac, 0.00398337)
+
+    np.testing.assert_almost_equal(autocorr_1d(ts), 0.00398337)
+    np.testing.assert_almost_equal(autocorr_tyx(ts.reshape(-1,1,1)), 0.00398337)
 
 def test_brentq():
     x = brentq(
