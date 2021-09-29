@@ -1,6 +1,7 @@
 from typing import Union
 
 import numpy as np
+from dask import is_dask_collection
 import dask.array as da
 import pandas as pd
 import xarray
@@ -407,18 +408,22 @@ class PixelAlgorithms:
         """
         xx = self._obj
         if xx.dims[0] == "time":
-            # merge all time slices if not already
-            if len(xx.chunks[0]) != 1:
-                xx = xx.chunk({'time': -1})
-
-            # I don't know how tell xarray's map_blocks about
+            # I don't know how to tell xarray's map_blocks about
             # changing dtype and losing first dimension, so use
             # dask version directly
-            data = da.map_blocks(
-                seasmon_xr.src.autocorr_tyx,
-                xx.data,
-                dtype="float32",
-                drop_axis=0)
+            if is_dask_collection(xx):
+                # merge all time slices if not already
+                if len(xx.chunks[0]) != 1:
+                    xx = xx.chunk({'time': -1})
+
+                data = da.map_blocks(
+                        seasmon_xr.src.autocorr_tyx,
+                        xx.data,
+                        dtype="float32",
+                        drop_axis=0)
+            else:
+                data = seasmon_xr.src.autocorr_tyx(xx.data)
+
             coords = {k: c for k, c in xx.coords.items() if k != "time"}
             return xarray.DataArray(data=data, dims=xx.dims[1:], coords=coords)
 
