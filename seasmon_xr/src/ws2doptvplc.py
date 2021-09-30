@@ -1,10 +1,14 @@
 from math import log, sqrt
 
+import numba
 from numba import guvectorize, float64, int16
 import numpy
 
 from ._helper import lazycompile
 from .ws2d import ws2d
+from .ws2doptvp import _ws2doptvp
+from .autocorr import autocorr_1d
+
 
 @lazycompile(guvectorize([(int16[:], float64, float64, float64, int16[:], float64[:])], "(n),(),(),() -> (n),()", nopython=True))
 def ws2doptvplc(y, nodata, p, lc, out, lopt):
@@ -148,3 +152,64 @@ def ws2doptvplc(y, nodata, p, lc, out, lopt):
     else:
         out[:] = y[:]
         lopt[0] = 0.0
+
+
+@lazycompile(numba.jit(nopython=True, parallel=True, nogil=True))
+def ws2doptvplc_tyx(tyx, p, nodata):
+    """Whittaker filter V-curve optimization of S, asymmetric weights and
+    srange determined by autocorrelation
+
+    Args:
+        tyx (numpy.array): raw data array (int16 usually, T,Y,X axis order)
+        nodata (double, int): nodata value
+        p (float): Envelope value for asymmetric weights
+
+    Returns:
+       zz  smoothed version of the input data (zz.shape == tyx.shape)
+       lopts optimization parameters (lopts.shape == zz.shape[1:])
+    """
+
+    nt, nr, nc = tyx.shape
+    zz = numpy.zeros((nt, nr, nc), dtype=tyx.dtype)
+    lopts = numpy.zeros((nr, nc), dtype="float64")
+
+    _llas = (numpy.arange(-2, 1.2, 0.2, dtype=float64),  # lc > 0.5
+             numpy.arange(0, 3.2, 0.2, dtype=float64))   # lc <= 0.5
+
+    for rr in numba.prange(nr):
+        # needs to be here so that each thread gets it's own version
+        xx = numpy.zeros(nt, dtype=float64)
+        ww = numpy.zeros(nt, dtype=float64)
+
+        for cc in range(nc):
+            # Copy values into local array and convert to float64
+            #
+            # For now `nodata` values remain unchanged
+            #
+            # other option is to replace `nodata` with last observed valid value or with 0.0 if
+            # none observed yet. Replaced values only impact autocorr, have no
+            # impact on smoothing due to them having 0 weight.
+            #
+            #   w[i] = (x[i] != nodata).astype("float64")
+            ngood = 0
+            #last_valid_value = float64(0)
+            for i in range(nt):
+                v = tyx[i, rr, cc]
+                if v != nodata:
+                    xx[i] = v
+                    ww[i] = 1
+                    #last_valid_value = v
+                    ngood += 1
+                else:
+                    #xx[i] = last_valid_value
+                    xx[i] = v  # keeping original behaviour for now
+                    ww[i] = 0
+
+            if ngood > 1:
+                lc = autocorr_1d(xx)
+                llas = _llas[0] if lc > 0.5 else _llas[1]
+                _xx, _lopts = _ws2doptvp(xx, ww, numba.float64(p), llas)
+                numpy.round_(_xx, 0, zz[:, rr, cc])
+                lopts[rr, cc] = _lopts
+
+    return zz, lopts
