@@ -3,8 +3,15 @@ from numba import guvectorize, float64, int16, int32, uint8
 from ._helper import lazycompile
 from .ws2d import ws2d
 
-@lazycompile(guvectorize([(int16[:], float64[:], int32[:], uint8[:], int16[:])], "(n),(m),(m),(l) -> (l)", nopython=True))
-def tinterpolate(x, template, labels, template_out, out): #pylint: disable=W0613
+
+@lazycompile(
+    guvectorize(
+        [(int16[:], float64[:], int32[:], uint8[:], int16[:])],
+        "(n),(m),(m),(l) -> (l)",
+        nopython=True,
+    )
+)
+def tinterpolate(x, template, labels, template_out, out):  # pylint: disable=W0613
     """Temporal interpolation of smoothed data
 
     Args:
@@ -31,15 +38,15 @@ def tinterpolate(x, template, labels, template_out, out): #pylint: disable=W0613
     v = z[0]
 
     for ll in labels[1:]:
-        if ll == labels[ii-1]:
+        if ll == labels[ii - 1]:
             v += z[ii]
             jj += 1
         else:
-            out[kk] = round(v/jj)
+            out[kk] = round(v / jj)
             kk += 1
             jj = 1
             v = z[ii]
 
         ii += 1
 
-    out[kk] = round(v/jj)
+    out[kk] = round(v / jj)

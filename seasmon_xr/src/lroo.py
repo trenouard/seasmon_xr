@@ -4,11 +4,12 @@ import numpy
 
 from ._helper import lazycompile
 
+
 @lazycompile(guvectorize("(uint8[:], uint8[:])", "(n) -> ()", nopython=True))
 def lroo(data, out):
-    '''Calculates the longest run of ones
+    """Calculates the longest run of ones
 
-    Intended to be used with xarray and apply_ufunc'''
+    Intended to be used with xarray and apply_ufunc"""
 
     cr = 1
     mr = 0
@@ -16,7 +17,7 @@ def lroo(data, out):
 
     for ix in range(1, dots.size):
 
-        d = dots[ix] - dots[ix-1]
+        d = dots[ix] - dots[ix - 1]
         if d == 1:
             cr += 1
             if cr > mr:

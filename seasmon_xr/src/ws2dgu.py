@@ -4,7 +4,12 @@ import numpy
 from ._helper import lazycompile
 from .ws2d import ws2d
 
-@lazycompile(guvectorize([(float64[:], float64, float64, int16[:])], "(n),(),() -> (n)", nopython=True))
+
+@lazycompile(
+    guvectorize(
+        [(float64[:], float64, float64, int16[:])], "(n),(),() -> (n)", nopython=True
+    )
+)
 def ws2dgu(y, lmda, nodata, out):
     """Whittaker smoother with fixed lambda (S).
     Args:

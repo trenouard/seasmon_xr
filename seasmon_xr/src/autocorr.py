@@ -16,7 +16,7 @@ def autocorr(x):
     r, c, t = x.shape
     z = zeros((r, c), dtype="float32")
 
-    M = t-1
+    M = t - 1
 
     for rr in range(r):
         for cc in range(c):
@@ -24,8 +24,8 @@ def autocorr(x):
             data1 = x[rr, cc, 1:]
             data2 = x[rr, cc, :-1]
 
-            sum1 = 0.
-            sum2 = 0.
+            sum1 = 0.0
+            sum2 = 0.0
             for i in range(M):
                 sum1 += data1[i]
                 sum2 += data2[i]
@@ -33,16 +33,16 @@ def autocorr(x):
                 mean1 = sum1 / M
                 mean2 = sum2 / M
 
-            var_sum1 = 0.
-            var_sum2 = 0.
-            cross_sum = 0.
+            var_sum1 = 0.0
+            var_sum2 = 0.0
+            cross_sum = 0.0
             for i in range(M):
                 var_sum1 += (data1[i] - mean1) ** 2
                 var_sum2 += (data2[i] - mean2) ** 2
-                cross_sum += (data1[i] * data2[i])
+                cross_sum += data1[i] * data2[i]
 
-            std1 = (var_sum1 / M) ** .5
-            std2 = (var_sum2 / M) ** .5
+            std1 = (var_sum1 / M) ** 0.5
+            std2 = (var_sum2 / M) ** 0.5
             cross_mean = cross_sum / M
 
             if std1 != 0 and std2 != 0:
@@ -52,6 +52,7 @@ def autocorr(x):
                 lc = 0.0
             z[rr, cc] = lc
     return z
+
 
 @jit(nopython=True)
 def autocorr_1d(data):
@@ -72,13 +73,13 @@ def autocorr_1d(data):
         x = float64(xx[i])
         Sx += x
         Sy += y
-        Sxx += (x * x)
-        Syy += (y * y)
-        Sxy += (x * y)
+        Sxx += x * x
+        Syy += y * y
+        Sxy += x * y
 
     # Sxx_ = Sum((Xi - Mean)^2)  # Sxx'
-    Sxx_ = Sxx - Sx*Sx/M
-    Syy_ = Syy - Sy*Sy/M
+    Sxx_ = Sxx - Sx * Sx / M
+    Syy_ = Syy - Sy * Sy / M
 
     #  (Sxy/M) - (Sx/M)*(Sy/M)
     # -----------------------------
@@ -98,11 +99,11 @@ def autocorr_1d(data):
     # this is mostly for numeric stability, but it helps
     # with performance too as we remove a bunch of divides and
     # replace 2 sqrt + 2 div ops with one 1/sqrt op
-    var_sum = Sxx_*Syy_
+    var_sum = Sxx_ * Syy_
     result = float64(0)
 
     if var_sum >= 1e-8:
-        result = (Sxy - Sx * Sy / M) * (var_sum**(-0.5))
+        result = (Sxy - Sx * Sy / M) * (var_sum ** (-0.5))
 
     return result
 

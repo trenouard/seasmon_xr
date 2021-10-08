@@ -4,7 +4,14 @@ import numpy
 from ._helper import lazycompile
 from .ws2d import ws2d
 
-@lazycompile(guvectorize([(float64[:], float64, float64, float64, int16[:])], "(n),(),(),() -> (n)", nopython=True))
+
+@lazycompile(
+    guvectorize(
+        [(float64[:], float64, float64, float64, int16[:])],
+        "(n),(),(),() -> (n)",
+        nopython=True,
+    )
+)
 def ws2dpgu(y, lmda, nodata, p, out):
     """Whittaker smoother with asymmetric smoothing and fixed lambda (S).
     Args:
@@ -30,7 +37,7 @@ def ws2dpgu(y, lmda, nodata, p, out):
                 w[ii] = 1
 
         if n > 1:
-            p1 = 1-p
+            p1 = 1 - p
             z = numpy.zeros(m)
             znew = numpy.zeros(m)
             wa = numpy.zeros(m)
@@ -66,4 +73,4 @@ def ws2dpgu(y, lmda, nodata, p, out):
         else:
             out[:] = y[:]
     else:
-            out[:] = y[:]
+        out[:] = y[:]

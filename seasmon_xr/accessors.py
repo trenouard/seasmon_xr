@@ -16,23 +16,27 @@ __all__ = [
     "WhittakerSmoother",
 ]
 
+
 class AccessorBase:
     """Base class for accessors"""
+
     def __init__(self, xarray_obj):
         self._obj = xarray_obj
+
 
 @xarray.register_dataarray_accessor("labeler")
 class LabelMaker:
     """Class to extending xarray.Dataarray for 'time'
 
-        Adds the properties labelling the time values as either
-        dekads or pentads.
+    Adds the properties labelling the time values as either
+    dekads or pentads.
     """
+
     def __init__(self, xarray_obj):
         if not np.issubdtype(xarray_obj, np.datetime64):
             raise TypeError(
-            "'.labeler' accessor only available for "
-            "DataArray with datetime64 dtype"
+                "'.labeler' accessor only available for "
+                "DataArray with datetime64 dtype"
             )
 
         if not hasattr(xarray_obj, "time"):
@@ -45,55 +49,69 @@ class LabelMaker:
     @property
     def dekad(self):
         """Time values labeled as dekads"""
-        return self._obj.time.to_series().apply(
-                    func=self._gen_labels,
-                    args=("d", 10.5),
-                ).values
+        return (
+            self._obj.time.to_series()
+            .apply(
+                func=self._gen_labels,
+                args=("d", 10.5),
+            )
+            .values
+        )
 
     @property
     def pentad(self):
         """Time values labeled as pentads"""
-        return self._obj.time.to_series().apply(
-                    func=self._gen_labels,
-                    args=("p", 5.19),
-                ).values
+        return (
+            self._obj.time.to_series()
+            .apply(
+                func=self._gen_labels,
+                args=("p", 5.19),
+            )
+            .values
+        )
 
     @staticmethod
     def _gen_labels(x, l, c):
-        return f"{x.year}{x.month:02}" + \
-               f"{l}{int(x.day//c+1)}"
+        return f"{x.year}{x.month:02}" + f"{l}{int(x.day//c+1)}"
 
 
 @xarray.register_dataset_accessor("iteragg")
 @xarray.register_dataarray_accessor("iteragg")
 class IterativeAggregation(AccessorBase):
     """Class to aggregate multiple coordinate slices"""
-    def sum(self,
-            n: int = None,
-            dim: str = "time",
-            begin: Union[str, int, float] = None,
-            end: Union[str, int, float] = None,
-            method: str = None):
+
+    def sum(
+        self,
+        n: int = None,
+        dim: str = "time",
+        begin: Union[str, int, float] = None,
+        end: Union[str, int, float] = None,
+        method: str = None,
+    ):
         """Generate sum-aggregations over dim for periods n"""
 
         yield from self._iteragg(np.nansum, n, dim, begin, end, method)
 
-    def mean(self,
-            n: int = None,
-            dim: str = "time",
-            begin: Union[str, int, float] = None,
-            end: Union[str, int, float] = None,
-            method: str = None):
+    def mean(
+        self,
+        n: int = None,
+        dim: str = "time",
+        begin: Union[str, int, float] = None,
+        end: Union[str, int, float] = None,
+        method: str = None,
+    ):
         """Generate mean-aggregations over dim for slices of n"""
 
         yield from self._iteragg(np.nanmean, n, dim, begin, end, method)
 
-    def full(self,
-            n: int = None,
-            dim: str = "time",
-            begin: Union[str, int, float] = None,
-            end: Union[str, int, float] = None,
-            method: str = None):
+    def full(
+        self,
+        n: int = None,
+        dim: str = "time",
+        begin: Union[str, int, float] = None,
+        end: Union[str, int, float] = None,
+        method: str = None,
+    ):
         """Generate mean-aggregations over dim for slices of n"""
 
         yield from self._iteragg(None, n, dim, begin, end, method)
@@ -111,9 +129,11 @@ class IterativeAggregation(AccessorBase):
 
         if begin is not None:
             try:
-                begin_ix = (_index.get_loc(begin, method=method) + 1)
+                begin_ix = _index.get_loc(begin, method=method) + 1
             except KeyError:
-                raise ValueError("Value %s for 'begin' not found in index for dim %s" % (begin, dim))
+                raise ValueError(
+                    "Value %s for 'begin' not found in index for dim %s" % (begin, dim)
+                )
         else:
             begin_ix = self._obj.sizes[dim]
 
@@ -121,7 +141,9 @@ class IterativeAggregation(AccessorBase):
             try:
                 end_ix = _index.get_loc(end, method=method)
             except KeyError:
-                raise ValueError("Value %s for 'end' not found in index for dim %s" % (end, dim))
+                raise ValueError(
+                    "Value %s for 'end' not found in index for dim %s" % (end, dim)
+                )
         else:
             end_ix = 0
 
@@ -129,25 +151,29 @@ class IterativeAggregation(AccessorBase):
             jj = ii - n
             if ii <= end_ix:
                 break
-            if jj >= 0 and (ii-jj) == n:
+            if jj >= 0 and (ii - jj) == n:
                 region = {dim: slice(jj, ii)}
-                _obj = self._obj[region].assign_attrs({
-                    "agg_start": str(_index[jj]),
-                    "agg_stop": str(_index[ii-1]),
-                    "agg_n": _index[jj:ii].size
-                })
+                _obj = self._obj[region].assign_attrs(
+                    {
+                        "agg_start": str(_index[jj]),
+                        "agg_stop": str(_index[ii - 1]),
+                        "agg_n": _index[jj:ii].size,
+                    }
+                )
 
                 if func is not None:
                     _obj = _obj.reduce(func, dim, keep_attrs=True)
                     if dim == "time":
-                        _obj = _obj.expand_dims(time=[self._obj.time[ii-1].values])
+                        _obj = _obj.expand_dims(time=[self._obj.time[ii - 1].values])
 
                 yield _obj
+
 
 @xarray.register_dataset_accessor("anom")
 @xarray.register_dataarray_accessor("anom")
 class Anomalies(AccessorBase):
     """Class to calculate anomalies from reference"""
+
     def ratio(self, reference, offset=0):
         """Calculate anomaly as ratio"""
         return (self._obj + offset) / (reference + offset) * 100
@@ -156,11 +182,13 @@ class Anomalies(AccessorBase):
         """Calculate anomaly as difference"""
         return (self._obj + offset) - (reference + offset)
 
+
 @xarray.register_dataset_accessor("whit")
 @xarray.register_dataarray_accessor("whit")
 class WhittakerSmoother:
     """Class for applying different version of the Whittaker smoother to a
-       Dataset or DataArray"""
+    Dataset or DataArray"""
+
     def __init__(self, xarray_obj):
         if not "time" in xarray_obj.dims:
             raise ValueError(
@@ -169,11 +197,13 @@ class WhittakerSmoother:
             )
         self._obj = xarray_obj
 
-    def whits(self,
-              nodata: Union[int, float],
-              sg: xarray.DataArray = None,
-              s: float = None,
-              p: float = None) -> xarray.Dataset:
+    def whits(
+        self,
+        nodata: Union[int, float],
+        sg: xarray.DataArray = None,
+        s: float = None,
+        p: float = None,
+    ) -> xarray.Dataset:
 
         """Apply whittaker with fixed S
 
@@ -193,7 +223,7 @@ class WhittakerSmoother:
         if sg is None and s is None:
             raise ValueError("Need S or sgrid")
 
-        lmda = 10**sg if sg is not None else s
+        lmda = 10 ** sg if sg is not None else s
 
         if p is not None:
 
@@ -224,11 +254,13 @@ class WhittakerSmoother:
 
         return xout
 
-    def whitsvc(self,
-                nodata: Union[int, float],
-                lc: xarray.DataArray = None,
-                srange: np.ndarray = None,
-                p: float = None) -> xarray.Dataset:
+    def whitsvc(
+        self,
+        nodata: Union[int, float],
+        lc: xarray.DataArray = None,
+        srange: np.ndarray = None,
+        p: float = None,
+    ) -> xarray.Dataset:
         """Apply whittaker with V-curve optimization of S
 
         Args:
@@ -242,10 +274,11 @@ class WhittakerSmoother:
             ds_out: xarray.Dataset with smoothed data and sgrid
         """
 
-
         if lc is not None:
             if p is None:
-                raise ValueError("If lc is set, a p value needs to be specified as well.")
+                raise ValueError(
+                    "If lc is set, a p value needs to be specified as well."
+                )
 
             ds_out, sgrid = xarray.apply_ufunc(
                 seasmon_xr.src.ws2doptvplc,
@@ -266,41 +299,41 @@ class WhittakerSmoother:
 
             if p:
                 ds_out, sgrid = xarray.apply_ufunc(
-                                    seasmon_xr.src.ws2doptvp,
-                                    self._obj,
-                                    nodata,
-                                    p,
-                                    srange,
-                                    input_core_dims=[["time"], [], [], ["dim0"]],
-                                    output_core_dims=[["time"], []],
-                                    dask="parallelized",
-                                    keep_attrs=True,
+                    seasmon_xr.src.ws2doptvp,
+                    self._obj,
+                    nodata,
+                    p,
+                    srange,
+                    input_core_dims=[["time"], [], [], ["dim0"]],
+                    output_core_dims=[["time"], []],
+                    dask="parallelized",
+                    keep_attrs=True,
                 )
 
             else:
 
                 ds_out, sgrid = xarray.apply_ufunc(
-                                    seasmon_xr.src.ws2doptv,
-                                    self._obj,
-                                    nodata,
-                                    srange,
-                                    input_core_dims=[["time"], [], ["dim0"]],
-                                    output_core_dims=[["time"], []],
-                                    dask="parallelized",
-                                    keep_attrs=True,
-                            )
+                    seasmon_xr.src.ws2doptv,
+                    self._obj,
+                    nodata,
+                    srange,
+                    input_core_dims=[["time"], [], ["dim0"]],
+                    output_core_dims=[["time"], []],
+                    dask="parallelized",
+                    keep_attrs=True,
+                )
 
         ds_out = ds_out.to_dataset()
         ds_out["sgrid"] = np.log10(sgrid).astype("float32")
 
         return ds_out
 
-    def whitint(self,
-                labels_daily: np.ndarray,
-                template: np.ndarray):
+    def whitint(self, labels_daily: np.ndarray, template: np.ndarray):
         """Wrapper for temporal interpolation using the Whittaker filter"""
         if self._obj.dtype != "int16":
-            raise NotImplementedError("Temporal interpolation works currently only with int16 input!")
+            raise NotImplementedError(
+                "Temporal interpolation works currently only with int16 input!"
+            )
 
         template_out = np.zeros(np.unique(labels_daily).size, dtype="u1")
 
@@ -320,10 +353,12 @@ class WhittakerSmoother:
 
         return ds_out
 
+
 @xarray.register_dataset_accessor("algo")
 @xarray.register_dataarray_accessor("algo")
 class PixelAlgorithms:
     """Set of algorithms to be applied to pixel timeseries"""
+
     def __init__(self, xarray_obj):
         if not "time" in xarray_obj.dims:
             raise ValueError(
@@ -332,10 +367,11 @@ class PixelAlgorithms:
             )
         self._obj = xarray_obj
 
-    def spi(self,
-            calibration_start=None,
-            calibration_stop=None,
-        ):
+    def spi(
+        self,
+        calibration_start=None,
+        calibration_stop=None,
+    ):
         """Calculates the SPI along the time dimension"""
 
         tix = self._obj.get_index("time")
@@ -344,47 +380,55 @@ class PixelAlgorithms:
         if calibration_start is not None:
             calstart = pd.Timestamp(calibration_start)
             if calstart > tix[-1]:
-                raise ValueError("Calibration start cannot be greater than last timestamp!")
+                raise ValueError(
+                    "Calibration start cannot be greater than last timestamp!"
+                )
             calstart_ix = tix.get_loc(calstart, method="bfill")
 
         calstop_ix = tix.size
         if calibration_stop is not None:
             calstop = pd.Timestamp(calibration_stop)
             if calstop < tix[0]:
-                raise ValueError("Calibration stop cannot be smaller than first timestamp!")
+                raise ValueError(
+                    "Calibration stop cannot be smaller than first timestamp!"
+                )
             calstop_ix = tix.get_loc(calstop, method="ffill") + 1
 
         if calstart_ix >= calstop_ix:
             raise ValueError("calibration_start < calibration_stop!")
 
         if abs(calstop_ix - calstart_ix) <= 1:
-            raise ValueError("Timeseries too short for calculating SPI. Please adjust calibration period!")
-
-        res = xarray.apply_ufunc(
-                seasmon_xr.src.spifun,
-                self._obj,
-                kwargs={
-                    "cal_start": calstart_ix,
-                    "cal_stop": calstop_ix,
-                },
-                input_core_dims=[["time"]],
-                output_core_dims=[["time"]],
-                dask="parallelized",
-                output_dtypes=['int16']
+            raise ValueError(
+                "Timeseries too short for calculating SPI. Please adjust calibration period!"
             )
 
-        res.attrs.update({
-            "spi_calibration_start": str(tix[calstart_ix].date()),
-            "spi_calibration_stop": str(tix[calstop_ix-1].date())
-        })
+        res = xarray.apply_ufunc(
+            seasmon_xr.src.spifun,
+            self._obj,
+            kwargs={
+                "cal_start": calstart_ix,
+                "cal_stop": calstop_ix,
+            },
+            input_core_dims=[["time"]],
+            output_core_dims=[["time"]],
+            dask="parallelized",
+            output_dtypes=["int16"],
+        )
+
+        res.attrs.update(
+            {
+                "spi_calibration_start": str(tix[calstart_ix].date()),
+                "spi_calibration_stop": str(tix[calstop_ix - 1].date()),
+            }
+        )
 
         return res
 
     def croo(self):
         """Current run of ones along time dimension"""
-        xsort = self._obj.sortby('time', ascending=False)
-        xtemp = xsort.where(xsort == 1).cumsum('time', skipna=False)
-        xtemp = xtemp.where(~xtemp.isnull(), 0).argmax('time')
+        xsort = self._obj.sortby("time", ascending=False)
+        xtemp = xsort.where(xsort == 1).cumsum("time", skipna=False)
+        xtemp = xtemp.where(~xtemp.isnull(), 0).argmax("time")
         x_crbt = xtemp + xsort.isel(time=0)
 
         return x_crbt
@@ -393,12 +437,12 @@ class PixelAlgorithms:
         """Longest run of ones along time dimension"""
 
         return xarray.apply_ufunc(
-                    seasmon_xr.src.lroo,
-                    self._obj,
-                    input_core_dims=[["time"]],
-                    dask="parallelized",
-                    output_dtypes=['uint8'],
-                )
+            seasmon_xr.src.lroo,
+            self._obj,
+            input_core_dims=[["time"]],
+            dask="parallelized",
+            output_dtypes=["uint8"],
+        )
 
     def autocorr(self):
         """Calculates the autocorrelation along time
@@ -414,13 +458,11 @@ class PixelAlgorithms:
             if is_dask_collection(xx):
                 # merge all time slices if not already
                 if len(xx.chunks[0]) != 1:
-                    xx = xx.chunk({'time': -1})
+                    xx = xx.chunk({"time": -1})
 
                 data = da.map_blocks(
-                        seasmon_xr.src.autocorr_tyx,
-                        xx.data,
-                        dtype="float32",
-                        drop_axis=0)
+                    seasmon_xr.src.autocorr_tyx, xx.data, dtype="float32", drop_axis=0
+                )
             else:
                 data = seasmon_xr.src.autocorr_tyx(xx.data)
 
@@ -428,9 +470,9 @@ class PixelAlgorithms:
             return xarray.DataArray(data=data, dims=xx.dims[1:], coords=coords)
 
         return xarray.apply_ufunc(
-                    seasmon_xr.src.autocorr,
-                    xx,
-                    input_core_dims=[["time"]],
-                    dask="parallelized",
-                    output_dtypes=["float32"]
-                )
+            seasmon_xr.src.autocorr,
+            xx,
+            input_core_dims=[["time"]],
+            dask="parallelized",
+            output_dtypes=["float32"],
+        )

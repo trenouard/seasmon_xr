@@ -3,8 +3,9 @@ from math import log, sqrt
 
 import numba
 import numpy as np
-import numba_scipy # pylint: disable=unused-import
+import numba_scipy  # pylint: disable=unused-import
 import scipy.special as sc
+
 
 @numba.njit
 def brentq(xa, xb, s):
@@ -20,21 +21,20 @@ def brentq(xa, xb, s):
 
     xpre = xa
     xcur = xb
-    xblk = 0.
-    fblk = 0.
-    spre = 0.
-    scur = 0.
+    xblk = 0.0
+    fblk = 0.0
+    spre = 0.0
+    scur = 0.0
     maxiter = 100
     xtol = 2e-12
-    rtol= 8.881784197001252e-16
+    rtol = 8.881784197001252e-16
 
     func = lambda a: log(a) - sc.digamma(a) - s
 
     fpre = func(xpre)
     fcur = func(xcur)
 
-
-    if (fpre*fcur) > 0:
+    if (fpre * fcur) > 0:
         return 0.0
 
     if fpre == 0:
@@ -63,7 +63,7 @@ def brentq(xa, xb, s):
             fblk = fpre
 
         delta = (xtol + rtol * abs(xcur)) / 2
-        sbis = (xblk - xcur) /2
+        sbis = (xblk - xcur) / 2
 
         if fcur == 0 or (abs(sbis) < delta):
             return xcur
@@ -76,7 +76,9 @@ def brentq(xa, xb, s):
                 # extrapolate
                 dpre = (fpre - fcur) / (xpre - xcur)
                 dblk = (fblk - fcur) / (xblk - xcur)
-                stry = -fcur * (fblk * dblk - fpre * dpre)/(dblk * dpre * (fblk - fpre))
+                stry = (
+                    -fcur * (fblk * dblk - fpre * dpre) / (dblk * dpre * (fblk - fpre))
+                )
 
             if (2 * abs(stry)) < min(abs(spre), 3 * abs(sbis) - delta):
                 # good short step
@@ -104,6 +106,7 @@ def brentq(xa, xb, s):
 
     return xcur
 
+
 @numba.njit
 def gammafit(x):
     """Calculate gamma distribution parameters for timeseries
@@ -121,8 +124,8 @@ def gammafit(x):
     for xx in x:
         if xx > 0:
             xts += xx
-            logs+= log(xx)
-            n +=1
+            logs += log(xx)
+            n += 1
 
     if n == 0:
         return (0, 0)
@@ -133,7 +136,7 @@ def gammafit(x):
     if s == 0:
         return (0, 0)
 
-    a_est = (3-s + sqrt((s-3)**2 + 24*s)) / (12*s)
+    a_est = (3 - s + sqrt((s - 3) ** 2 + 24 * s)) / (12 * s)
     xa = a_est * (1 - 0.4)
     xb = a_est * (1 + 0.4)
     a = brentq(xa, xb, s)
@@ -144,12 +147,12 @@ def gammafit(x):
 
     return (a, b)
 
+
 @numba.njit
 def spifun(x, a=None, b=None, cal_start=None, cal_stop=None):
-    """Calculate SPI with gamma distribution for 3d array
-    """
+    """Calculate SPI with gamma distribution for 3d array"""
     y = np.full_like(x, -9999)
-    r,c,t = x.shape
+    r, c, t = x.shape
 
     if cal_start is None:
         cal_start = 0
@@ -189,10 +192,10 @@ def spifun(x, a=None, b=None, cal_start=None, cal_stop=None):
             spi = np.full(t, p_zero, dtype=numba.float64)
 
             for tix in valid_ix:
-                spi[tix] = p_zero + ((1-p_zero) * sc.gammainc(alpha, xt[tix]/beta))
+                spi[tix] = p_zero + ((1 - p_zero) * sc.gammainc(alpha, xt[tix] / beta))
 
             for tix in range(t):
-                spi[tix] = (sc.ndtri(spi[tix]) * 1000)
+                spi[tix] = sc.ndtri(spi[tix]) * 1000
 
             np.round_(spi, 0, spi)
 
