@@ -5,15 +5,15 @@ import pytest
 
 from seasmon_xr.src import (
     autocorr,
-    autocorr_tyx,
     autocorr_1d,
+    autocorr_tyx,
     lroo,
     spifun,
     ws2dgu,
-    ws2dpgu,
     ws2doptv,
     ws2doptvp,
     ws2doptvplc,
+    ws2dpgu,
 )
 from seasmon_xr.src.spi import brentq, gammafit
 
@@ -31,12 +31,40 @@ def test_lroo(ts):
     assert x_lroo == 3
 
 
+def pearson_reference(X, Y):
+    return ((X - X.mean()) * (Y - Y.mean())).mean() / (X.std() * Y.std())
+
+
+def autocorr_1d_reference(x, nodata=None):
+    if nodata is not None:
+        _x = x.astype("float64")
+        _x[x == nodata] = np.nan
+        x = _x
+
+    X = x[:-1]
+    Y = x[1:]
+    if np.isnan(x).any():
+        X, Y = X.copy(), Y.copy()
+        X[np.isnan(X)] = np.nanmean(X)
+        Y[np.isnan(Y)] = np.nanmean(Y)
+
+    return pearson_reference(X, Y)
+
+
 def test_autocorr(ts):
     ac = autocorr(ts.reshape(1, 1, -1))
     np.testing.assert_almost_equal(ac, 0.00398337)
 
     np.testing.assert_almost_equal(autocorr_1d(ts), 0.00398337)
+    np.testing.assert_almost_equal(autocorr_1d_reference(ts), 0.00398337)
     np.testing.assert_almost_equal(autocorr_tyx(ts.reshape(-1, 1, 1)), 0.00398337)
+
+
+def test_autocorr_nodata(ts_ndvi):
+    nodata, ts = ts_ndvi
+    rr = autocorr_1d(ts, nodata)
+    rr_ref = autocorr_1d_reference(ts, nodata)
+    assert rr == pytest.approx(rr_ref, rel=1e-3)
 
 
 def test_brentq():

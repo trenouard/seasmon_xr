@@ -184,39 +184,41 @@ def ws2doptvplc_tyx(tyx, p, nodata):
         numpy.arange(0, 3.2, 0.2, dtype=float64),
     )  # lc <= 0.5
 
+    p = numba.float64(p)
+
     for rr in numba.prange(nr):
         # needs to be here so that each thread gets it's own version
+        xx_raw = numpy.zeros(nt, dtype=tyx.dtype)
         xx = numpy.zeros(nt, dtype=float64)
         ww = numpy.zeros(nt, dtype=float64)
 
         for cc in range(nc):
-            # Copy values into local array and convert to float64
+            # Copy values into local array first without any change
             #
-            # For now `nodata` values remain unchanged
-            #
-            # other option is to replace `nodata` with last observed valid value or with 0.0 if
-            # none observed yet. Replaced values only impact autocorr, have no
-            # impact on smoothing due to them having 0 weight.
-            #
-            #   w[i] = (x[i] != nodata).astype("float64")
+            xx_raw[:] = tyx[:, rr, cc]
+
+            # Compute weights and count number of good elements
+            #   xx = xx_raw.astype("float64")
+            #   ww = np.ones_like(xx_raw, dtype='bool')
+            #   xx[xx_raw == nodata] = 0
+            #   ww[xx_raw == nodata] = 0
+
             ngood = 0
-            # last_valid_value = float64(0)
             for i in range(nt):
-                v = tyx[i, rr, cc]
-                if v != nodata:
+                v = xx_raw[i]
+                if v == nodata:
+                    xx[i] = 0  # really should be nan, but ws2d doesn't like them
+                    ww[i] = 0
+                else:
                     xx[i] = v
                     ww[i] = 1
-                    # last_valid_value = v
                     ngood += 1
-                else:
-                    # xx[i] = last_valid_value
-                    xx[i] = v  # keeping original behaviour for now
-                    ww[i] = 0
 
             if ngood > 1:
-                lc = autocorr_1d(xx)
+                lc = autocorr_1d(xx_raw, nodata)
+
                 llas = _llas[0] if lc > 0.5 else _llas[1]
-                _xx, _lopts = _ws2doptvp(xx, ww, numba.float64(p), llas)
+                _xx, _lopts = _ws2doptvp(xx, ww, p, llas)
                 numpy.round_(_xx, 0, zz[:, rr, cc])
                 lopts[rr, cc] = _lopts
 
