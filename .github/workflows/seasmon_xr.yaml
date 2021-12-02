@@ -2,16 +2,16 @@ name: Build and test seasmon_xr
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
     branches:
-      - master
+      - main
 jobs:
   build_and_test:
     runs-on: ubuntu-18.04
     defaults:
       run:
-        working-directory: ./src/seasmon_xr/
+        working-directory: ./
     strategy:
       matrix:
         python-version: [3.7, 3.8, 3.9]

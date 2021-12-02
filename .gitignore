@@ -16,12 +16,6 @@ var/
 .installed.cfg
 *.egg
 
-
-lambda/src/**/vendor/*
-!lambda/src/**/vendor/utils.py
-
-lambda/layers/**/*.zip
-
 # testing scripts
 docker/src/testing
 
@@ -173,9 +167,6 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
-
-# force include
-!src/assets/lib/
 
 # vscode
 .vscode
