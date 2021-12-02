@@ -1,10 +1,10 @@
 from typing import Union
 
-import numpy as np
-from dask import is_dask_collection
 import dask.array as da
+import numpy as np
 import pandas as pd
 import xarray
+from dask import is_dask_collection
 
 import seasmon_xr.src
 
@@ -42,7 +42,7 @@ class LabelMaker:
         if not hasattr(xarray_obj, "time"):
             raise ValueError("Data array is missing 'time' accessor!")
 
-        if not "time" in xarray_obj.dims:
+        if "time" not in xarray_obj.dims:
             xarray_obj = xarray_obj.expand_dims("time")
         self._obj = xarray_obj
 
@@ -71,8 +71,8 @@ class LabelMaker:
         )
 
     @staticmethod
-    def _gen_labels(x, l, c):
-        return f"{x.year}{x.month:02}" + f"{l}{int(x.day//c+1)}"
+    def _gen_labels(x, lbl, c):
+        return f"{x.year}{x.month:02}" + f"{lbl}{int(x.day//c+1)}"
 
 
 @xarray.register_dataset_accessor("iteragg")
@@ -133,7 +133,7 @@ class IterativeAggregation(AccessorBase):
             except KeyError:
                 raise ValueError(
                     "Value %s for 'begin' not found in index for dim %s" % (begin, dim)
-                )
+                ) from None
         else:
             begin_ix = self._obj.sizes[dim]
 
@@ -143,7 +143,7 @@ class IterativeAggregation(AccessorBase):
             except KeyError:
                 raise ValueError(
                     "Value %s for 'end' not found in index for dim %s" % (end, dim)
-                )
+                ) from None
         else:
             end_ix = 0
 
@@ -190,7 +190,7 @@ class WhittakerSmoother:
     Dataset or DataArray"""
 
     def __init__(self, xarray_obj):
-        if not "time" in xarray_obj.dims:
+        if "time" not in xarray_obj.dims:
             raise ValueError(
                 "'.whit' can only be applied to datasets / dataarrays "
                 "with 'time' dimension!"
@@ -360,7 +360,7 @@ class PixelAlgorithms:
     """Set of algorithms to be applied to pixel timeseries"""
 
     def __init__(self, xarray_obj):
-        if not "time" in xarray_obj.dims:
+        if "time" not in xarray_obj.dims:
             raise ValueError(
                 "'.algo' can only be applied to datasets / dataarrays "
                 "with 'time' dimension!"

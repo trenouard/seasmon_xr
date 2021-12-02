@@ -1,13 +1,15 @@
+# pyright: reportGeneralTypeIssues=false
 from math import log, sqrt
 
 import numba
-from numba import guvectorize, float64, int16
 import numpy
+from numba import guvectorize
+from numba.core.types import float64, int16
 
 from ._helper import lazycompile
+from .autocorr import autocorr_1d
 from .ws2d import ws2d
 from .ws2doptvp import _ws2doptvp
-from .autocorr import autocorr_1d
 
 
 @lazycompile(
@@ -67,7 +69,7 @@ def ws2doptvplc(y, nodata, p, lc, out, lopt):
 
         # Compute v-curve
         for lix in range(nl):
-            l = pow(10, llas[lix])
+            lmda = pow(10, llas[lix])
 
             for i in range(10):
                 for j in range(m):
@@ -79,7 +81,7 @@ def ws2doptvplc(y, nodata, p, lc, out, lopt):
                         wa[j] = p1
                     ww[j] = w[j] * wa[j]
 
-                znew[:] = ws2d(y, l, ww)
+                znew[:] = ws2d(y, lmda, ww)
                 z_tmp = 0.0
                 j = 0
                 for j in range(m):
@@ -184,9 +186,9 @@ def ws2doptvplc_tyx(tyx, p, nodata):
         numpy.arange(0, 3.2, 0.2, dtype=float64),
     )  # lc <= 0.5
 
-    p = numba.float64(p)
+    p = float64(p)
 
-    for rr in numba.prange(nr):
+    for rr in numba.prange(nr):  # pylint: disable=not-an-iterable
         # needs to be here so that each thread gets it's own version
         xx_raw = numpy.zeros(nt, dtype=tyx.dtype)
         xx = numpy.zeros(nt, dtype=float64)

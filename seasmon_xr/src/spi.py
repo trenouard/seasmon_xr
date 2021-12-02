@@ -2,8 +2,8 @@
 from math import log, sqrt
 
 import numba
-import numpy as np
 import numba_scipy  # pylint: disable=unused-import
+import numpy as np
 import scipy.special as sc
 
 
@@ -54,12 +54,10 @@ def brentq(xa, xb, s):
             spre = scur = xcur - xpre
 
         if abs(fblk) < abs(fcur):
-            xpre = xcur
-            xcur = xblk
+            xpre, xcur = xcur, xblk
             xblk = xpre
 
-            fpre = fcur
-            fcur = fblk
+            fpre, fcur = fcur, fblk
             fblk = fpre
 
         delta = (xtol + rtol * abs(xcur)) / 2
@@ -192,7 +190,10 @@ def spifun(x, a=None, b=None, cal_start=None, cal_stop=None):
             spi = np.full(t, p_zero, dtype=numba.float64)
 
             for tix in valid_ix:
-                spi[tix] = p_zero + ((1 - p_zero) * sc.gammainc(alpha, xt[tix] / beta))
+                spi[tix] = p_zero + (
+                    (1 - p_zero)
+                    * sc.gammainc(alpha, xt[tix] / beta)  # pylint: disable=no-member
+                )
 
             for tix in range(t):
                 spi[tix] = sc.ndtri(spi[tix]) * 1000

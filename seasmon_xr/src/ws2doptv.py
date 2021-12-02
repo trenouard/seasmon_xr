@@ -1,7 +1,8 @@
 from math import log, sqrt
 
-from numba import guvectorize, float64, int16
 import numpy
+from numba import guvectorize
+from numba.core.types import float64, int16
 
 from ._helper import lazycompile
 from .ws2d import ws2d
@@ -23,7 +24,7 @@ def ws2doptv(y, nodata, llas, out, lopt):
         llas (numpy.array): 1d array of s values to use for optimization"""
 
     m = y.shape[0]
-    w = numpy.zeros(y.shape, dtype=float64)
+    w = numpy.zeros(y.shape)
     n = 0
     for ii in range(m):
         if y[ii] == nodata:
@@ -48,8 +49,8 @@ def ws2doptv(y, nodata, llas, out, lopt):
 
         # Compute v-curve
         for lix in range(nl):
-            l = pow(10, llas[lix])
-            z[:] = ws2d(y, l, w)
+            lmda = pow(10, llas[lix])
+            z[:] = ws2d(y, lmda, w)
             for i in range(m):
                 w_tmp = w[i]
                 y_tmp = y[i]

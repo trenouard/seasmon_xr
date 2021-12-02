@@ -1,7 +1,9 @@
+# pyright: reportGeneralTypeIssues=false
 from math import log, sqrt
 
-from numba import guvectorize, float64, int16, jit
 import numpy
+from numba import guvectorize, jit
+from numba.core.types import float64, int16
 
 from ._helper import lazycompile
 from .ws2d import ws2d
@@ -55,7 +57,7 @@ def ws2doptvp(y, nodata, p, llas, out, lopt):
 
         # Compute v-curve
         for lix in range(nl):
-            l = pow(10, llas[lix])
+            lmda = pow(10, llas[lix])
 
             for i in range(10):
                 for j in range(m):
@@ -67,7 +69,7 @@ def ws2doptvp(y, nodata, p, llas, out, lopt):
                         wa[j] = p1
                     ww[j] = w[j] * wa[j]
 
-                znew[:] = ws2d(y, l, ww)
+                znew[:] = ws2d(y, lmda, ww)
                 z_tmp = 0.0
                 j = 0
                 for j in range(m):
@@ -181,7 +183,7 @@ def _ws2doptvp(y, w, p, llas):
 
     # Compute v-curve
     for lix in range(nl):
-        l = pow(10, llas[lix])
+        lmda = pow(10, llas[lix])
 
         for i in range(10):
             for j in range(m):
@@ -193,7 +195,7 @@ def _ws2doptvp(y, w, p, llas):
                     wa[j] = p1
                 ww[j] = w[j] * wa[j]
 
-            znew[:] = ws2d(y, l, ww)
+            znew[:] = ws2d(y, lmda, ww)
             z_tmp = 0.0
             j = 0
             for j in range(m):
