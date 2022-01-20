@@ -87,3 +87,26 @@ jobs:
           name: wheels
           path: wheels
           if-no-files-found: error
+
+      - name: upload wheels to S3
+        if: |
+          github.event_name == 'push'
+          && matrix.python-version == 3.8
+          && (github.ref_name == 'main' || github.ref_name == 'push-s3')
+
+        run: |
+          aws s3 sync wheels/ ${S3_DEST}/
+
+          # re-render index.html
+          aws s3 ls ${S3_DEST}/ | ./scripts/render-simple-index.awk > wheels/index.html
+          # need to copy it as index.html into "directory"
+          aws s3 cp wheels/index.html ${S3_DEST}/index.html
+          # but also as a file with the same name as directory,
+          # so that `curl http://${host}/pypi/seasmon-xr` works
+          aws s3 cp wheels/index.html ${S3_DEST} --content-type text/html
+
+        env:
+          S3_DEST: s3://wfp-share/pypi/seasmon-xr
+          AWS_DEFAULT_REGION: eu-central-1
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
