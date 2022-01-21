@@ -1,0 +1,37 @@
+name: Publish to S3
+on:
+  workflow_run:
+    workflows: ["Run Code Checks"]
+    branches:
+      - main
+      - actions-refactor
+    types:
+      - completed
+
+jobs:
+  publish-s3:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/cache@v2
+        id: wheels_cache
+        with:
+          path: ./wheels
+          key: wheels-${{ github.sha }}
+
+      - name: upload wheels to S3
+        run: |
+          aws s3 sync wheels/ ${S3_DEST}/
+
+          # re-render index.html
+          aws s3 ls ${S3_DEST}/ | ./scripts/render-simple-index.awk > wheels/index.html
+          # need to copy it as index.html into "directory"
+          aws s3 cp wheels/index.html ${S3_DEST}/index.html
+          # but also as a file with the same name as directory,
+          # so that `curl http://${host}/pypi/seasmon-xr` works
+          aws s3 cp wheels/index.html ${S3_DEST} --content-type text/html
+
+        env:
+          S3_DEST: s3://wfp-share/pypi/seasmon-xr
+          AWS_DEFAULT_REGION: eu-central-1
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
