@@ -9,24 +9,31 @@
 name: prepare python environment
 
 on:
+  workflow_dispatch:
+    inputs:
+      python-version:
+        required: true
+        type: string
+        default: "3.8"
   workflow_call:
     inputs:
       python-version:
         required: true
         type: string
-      script:
-        required: true
+      run:
+        required: false
         type: string
+        default: ''
     outputs:
       cache-key:
         description: "Cache key"
-        value: ${{ jobs.setup_py.outputs.cache-key }}
+        value: ${{ jobs.with_py.outputs.cache-key }}
       cache-path:
         description: "Path of the cached python environment"
-        value: ${{ jobs.setup_py.outputs.cache-path }}
+        value: ${{ jobs.with_py.outputs.cache-path }}
 
 jobs:
-  setup_py:
+  with_py:
     runs-on: ubuntu-20.04
     outputs:
       cache-key: ${{ steps.cfg.outputs.cache-key }}
@@ -52,7 +59,7 @@ jobs:
         id: py_cache
         with:
           path: ${{ steps.cfg.outputs.cache-path }}
-          key: ${{ steps.cfg.output.cache-key }}
+          key: ${{ steps.cfg.outputs.cache-key }}
           restore-keys: |
             ${{ steps.cfg.outputs.cache-path }}-
 
@@ -64,3 +71,6 @@ jobs:
               -r requirements.txt \
               -r requirements_dev.txt
           pip freeze
+      - name: run
+        if: inputs.run != ''
+        run: ${{ inputs.run }}

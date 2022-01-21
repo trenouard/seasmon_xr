@@ -1,59 +1,75 @@
-name: Build and test seasmon_xr
+name: Run Code Checks
 on:
   push:
   pull_request:
+
 jobs:
-  build_and_test:
+  env38:
+    uses: WFP-VAM/seasmon_xr/.github/workflows/pyenv.yaml@actions-refactor
+    with:
+      python-version: "3.8"
+      run: |
+          echo $LD_LIBRARY_PATH
+          echo "$PATH"
+          which python
+          python --version
+
+  black:
+    needs: [env38]
+    uses: WFP-VAM/seasmon_xr/.github/workflows/pyenv.yaml@actions-refactor
+    with:
+      python-version: "3.8"
+      run: black --check .
+
+  pylint:
+    needs: [env38]
+    uses: WFP-VAM/seasmon_xr/.github/workflows/pyenv.yaml@actions-refactor
+    with:
+      python-version: "3.8"
+      run: pylint seasmon_xr
+
+  pydocstyle:
+    needs: [env38]
+    uses: WFP-VAM/seasmon_xr/.github/workflows/pyenv.yaml@actions-refactor
+    with:
+      python-version: "3.8"
+      run: pydocstyle seasmon_xr
+
+  mypy:
+    needs: [env38]
+    uses: WFP-VAM/seasmon_xr/.github/workflows/pyenv.yaml@actions-refactor
+    with:
+      python-version: "3.8"
+      run: mypy seasmon_xr
+
+  wheels:
     runs-on: ubuntu-20.04
-    defaults:
-      run:
-        working-directory: ./
-    strategy:
-      matrix:
-        python-version: [3.8, 3.9]
+    needs:
+      - env38
+      - black
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: cache deps
+      - name: Get Python Env from Cache
         uses: actions/cache@v2
-        id: py_cache
         with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-${{ hashFiles('requirements.txt', 'requirements_dev.txt') }}
+          key: ${{ needs.env38.outputs.cache-key }}
+          path: ${{ needs.env38.outputs.cache-path }}
 
-      - name: install dependencies
-        if: steps.py_cache.outputs.cache-hit != 'true'
+      - name: Update PATH
+        shell: bash
         run: |
-          pip install --upgrade --upgrade-strategy eager \
-              -r requirements.txt \
-              -r requirements_dev.txt
-          pip freeze
+          echo "${py_path}/bin" >> $GITHUB_PATH
+          echo "LD_LIBRARY_PATH=${py_path}/lib" >> $GITHUB_ENV
+        env:
+          py_path: ${{ needs.env38.outputs.cache-path }}
 
-      - name: check formatting
-        run: |
-          black --check .
-
-      - name: check with pylint
-        run: |
-          pylint seasmon_xr
-
-      - name: check with pydocstyle
-        run: |
-          pydocstyle seasmon_xr
-
-      - name: check with mypy
-        run: |
-          mypy seasmon_xr
-
-      - name: run pytest
-        run: python -m pytest -s
+      - uses: actions/cache@v2
+        id: wheels_cache
+        with:
+          path: ./wheels
+          key: wheels-${{ github.sha }}
 
       - name: build wheels unpatched
-        if: matrix.python-version == 3.8
         run: |
           mkdir wheels
           pip wheel \
@@ -65,7 +81,6 @@ jobs:
           .
 
       - name: patch version
-        if: matrix.python-version == 3.8
         run: |
           python ./scripts/patch_version.py ${GITHUB_RUN_NUMBER:-0} ./seasmon_xr/_version.py
 
@@ -81,32 +96,48 @@ jobs:
           .
 
       - name: Upload results (artifact)
-        if: matrix.python-version == 3.8
         uses: actions/upload-artifact@v2
         with:
           name: wheels
           path: wheels
           if-no-files-found: error
 
-      - name: upload wheels to S3
-        if: |
-          github.event_name == 'push'
-          && matrix.python-version == 3.8
-          && (github.ref_name == 'main' || github.ref_name == 'push-s3')
+  tests:
+    runs-on: ubuntu-20.04
+    needs:
+      - env38
+      - black
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get Python Env from Cache
+        uses: actions/cache@v2
+        with:
+          key: ${{ needs.env38.outputs.cache-key }}
+          path: ${{ needs.env38.outputs.cache-path }}
 
+      - name: Update PATH
+        shell: bash
         run: |
-          aws s3 sync wheels/ ${S3_DEST}/
-
-          # re-render index.html
-          aws s3 ls ${S3_DEST}/ | ./scripts/render-simple-index.awk > wheels/index.html
-          # need to copy it as index.html into "directory"
-          aws s3 cp wheels/index.html ${S3_DEST}/index.html
-          # but also as a file with the same name as directory,
-          # so that `curl http://${host}/pypi/seasmon-xr` works
-          aws s3 cp wheels/index.html ${S3_DEST} --content-type text/html
-
+          echo "${py_path}/bin" >> $GITHUB_PATH
+          echo "LD_LIBRARY_PATH=${py_path}/lib" >> $GITHUB_ENV
         env:
-          S3_DEST: s3://wfp-share/pypi/seasmon-xr
-          AWS_DEFAULT_REGION: eu-central-1
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          py_path: ${{ needs.env38.outputs.cache-path }}
+
+      - name: Run test with coverage
+        run: |
+          python -m pytest -s \
+            --cov \
+            --cov-report=term \
+            tests/
+
+  finished:
+    runs-on: ubuntu-20.04
+    needs:
+      - wheels
+      - tests
+      - black
+      - pylint
+      - mypy
+      - pydocstyle
+    steps:
+      - uses: actions/checkout@v2
