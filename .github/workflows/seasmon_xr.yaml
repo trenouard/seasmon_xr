@@ -4,7 +4,7 @@ on:
   pull_request:
 
 jobs:
-  env38:
+  pyenv:
     uses: WFP-VAM/seasmon_xr/.github/workflows/pyenv.yaml@main
     with:
       python-version: "3.8"
@@ -15,53 +15,70 @@ jobs:
           python --version
 
   black:
-    needs: [env38]
-    uses: WFP-VAM/seasmon_xr/.github/workflows/pyenv.yaml@main
-    with:
-      python-version: "3.8"
-      run: black --check .
-
-  pylint:
-    needs: [env38]
-    uses: WFP-VAM/seasmon_xr/.github/workflows/pyenv.yaml@main
-    with:
-      python-version: "3.8"
-      run: pylint seasmon_xr
-
-  pydocstyle:
-    needs: [env38]
-    uses: WFP-VAM/seasmon_xr/.github/workflows/pyenv.yaml@main
-    with:
-      python-version: "3.8"
-      run: pydocstyle seasmon_xr
-
-  mypy:
-    needs: [env38]
-    uses: WFP-VAM/seasmon_xr/.github/workflows/pyenv.yaml@main
-    with:
-      python-version: "3.8"
-      run: mypy seasmon_xr
-
-  wheels:
-    runs-on: ubuntu-20.04
     needs:
-      - env38
-      - black
+      - pyenv
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - name: Get Python Env from Cache
         uses: actions/cache@v2
         with:
-          key: ${{ needs.env38.outputs.cache-key }}
-          path: ${{ needs.env38.outputs.cache-path }}
+          key: ${{ needs.pyenv.outputs.cache-key }}
+          path: ${{ needs.pyenv.outputs.cache-path }}
+      - name: Update PATH
+        run: |
+          echo "${py_path}/bin" >> $GITHUB_PATH
+          echo "LD_LIBRARY_PATH=${py_path}/lib" >> $GITHUB_ENV
+        env:
+          py_path: ${{ needs.pyenv.outputs.cache-path }}
 
+      - name: run black
+        run: black --check .
+
+  linting:
+    needs:
+      - pyenv
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get Python Env from Cache
+        uses: actions/cache@v2
+        with:
+          key: ${{ needs.pyenv.outputs.cache-key }}
+          path: ${{ needs.pyenv.outputs.cache-path }}
+      - name: Update PATH
+        run: |
+          echo "${py_path}/bin" >> $GITHUB_PATH
+          echo "LD_LIBRARY_PATH=${py_path}/lib" >> $GITHUB_ENV
+        env:
+          py_path: ${{ needs.pyenv.outputs.cache-path }}
+
+      - name: pylint
+        run: pylint seasmon_xr
+      - name: pydocstyle
+        run:  pydocstyle seasmon_xr
+      - name: mypy
+        run: mypy seasmon_xr
+
+  wheels:
+    needs:
+      - pyenv
+      - black
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get Python Env from Cache
+        uses: actions/cache@v2
+        with:
+          key: ${{ needs.pyenv.outputs.cache-key }}
+          path: ${{ needs.pyenv.outputs.cache-path }}
       - name: Update PATH
         shell: bash
         run: |
           echo "${py_path}/bin" >> $GITHUB_PATH
           echo "LD_LIBRARY_PATH=${py_path}/lib" >> $GITHUB_ENV
         env:
-          py_path: ${{ needs.env38.outputs.cache-path }}
+          py_path: ${{ needs.pyenv.outputs.cache-path }}
 
       - uses: actions/cache@v2
         id: wheels_cache
@@ -106,25 +123,24 @@ jobs:
           if-no-files-found: error
 
   tests:
-    runs-on: ubuntu-20.04
     needs:
-      - env38
+      - pyenv
       - black
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - name: Get Python Env from Cache
         uses: actions/cache@v2
         with:
-          key: ${{ needs.env38.outputs.cache-key }}
-          path: ${{ needs.env38.outputs.cache-path }}
-
+          key: ${{ needs.pyenv.outputs.cache-key }}
+          path: ${{ needs.pyenv.outputs.cache-path }}
       - name: Update PATH
         shell: bash
         run: |
           echo "${py_path}/bin" >> $GITHUB_PATH
           echo "LD_LIBRARY_PATH=${py_path}/lib" >> $GITHUB_ENV
         env:
-          py_path: ${{ needs.env38.outputs.cache-path }}
+          py_path: ${{ needs.pyenv.outputs.cache-path }}
 
       - name: Run test with coverage
         run: |
@@ -133,14 +149,38 @@ jobs:
             --cov-report=term \
             tests/
 
-  finished:
-    runs-on: ubuntu-20.04
+  test-wheel:
     needs:
-      - wheels
-      - tests
+      - pyenv
       - black
-      - pylint
-      - mypy
-      - pydocstyle
+      - wheels
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
+      - name: Get Python Env from Cache
+        uses: actions/cache@v2
+        with:
+          key: ${{ needs.pyenv.outputs.cache-key }}
+          path: ${{ needs.pyenv.outputs.cache-path }}
+      - name: Update PATH
+        shell: bash
+        run: |
+          echo "${py_path}/bin" >> $GITHUB_PATH
+          echo "LD_LIBRARY_PATH=${py_path}/lib" >> $GITHUB_ENV
+        env:
+          py_path: ${{ needs.pyenv.outputs.cache-path }}
+
+      - name: Get Wheels
+        uses: actions/download-artifact@v2
+        with:
+          name: wheels
+          path: wheels
+
+      - name: Install dev wheel
+        run: |
+          find wheels/ -type f -name "*.dev*.whl" | head -1 | xargs python -m pip install
+
+      - name: Test Code from the wheel
+        run: |
+          cd tests/
+          python -m pytest -s .
