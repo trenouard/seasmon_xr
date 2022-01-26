@@ -28,7 +28,7 @@ class AccessorBase:
 
 
 class AccessorTimeBase(AccessorBase):
-    """Base class for accessors with required time dimension"""
+    """Base class for accessors with required time dimension."""
 
     def __init__(self, xarray_obj):
         """Construct with DataArray|Dataset."""
@@ -116,7 +116,7 @@ class LabelMaker:
 class Period(AccessorTimeBase):
     # pylint: disable=no-member,undefined-variable
     """
-    Baseclass to extend time dimension with period functionality
+    Baseclass to extend time dimension with period functionality.
 
     Adds functionality for working with periods, such as dekads and pentads
     """
@@ -150,7 +150,7 @@ class Period(AccessorTimeBase):
 @xarray.register_dataset_accessor("dekad")
 @xarray.register_dataarray_accessor("dekad")
 class Dekad(Period):
-    """Accessor class for dekad period"""
+    """Accessor class for dekad period."""
 
     _cfactor = 10.5
     _nperiods = 3
@@ -160,7 +160,7 @@ class Dekad(Period):
 @xarray.register_dataset_accessor("pentad")
 @xarray.register_dataarray_accessor("pentad")
 class Pentad(Period):
-    """Accessor class for pentad period"""
+    """Accessor class for pentad period."""
 
     _cfactor = 5.19
     _nperiods = 6
