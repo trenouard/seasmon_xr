@@ -32,6 +32,38 @@ def res_spi():
     )
 
 
+def test_period_years_dekad(darr):
+    np.testing.assert_array_equal(darr.time.dekad.year, darr.time.dt.year)
+
+
+def test_period_years_pentad(darr):
+    np.testing.assert_array_equal(darr.time.pentad.year, darr.time.dt.year)
+
+
+def test_period_months_dekad(darr):
+    np.testing.assert_array_equal(darr.time.dekad.month, darr.time.dt.month)
+
+
+def test_period_months_pentad(darr):
+    np.testing.assert_array_equal(darr.time.pentad.month, darr.time.dt.month)
+
+
+def test_period_midx_dekad(darr):
+    np.testing.assert_array_equal(darr.time.dekad.midx, [1, 2, 3, 3, 1])
+
+
+def test_period_midx_pentad(darr):
+    np.testing.assert_array_equal(darr.time.pentad.midx, [1, 3, 5, 6, 2])
+
+
+def test_period_yidx_dekad(darr):
+    np.testing.assert_array_equal(darr.time.dekad.yidx, [1, 2, 3, 3, 4])
+
+
+def test_period_yidx_pentad(darr):
+    np.testing.assert_array_equal(darr.time.pentad.yidx, [1, 3, 5, 6, 8])
+
+
 def test_labels_dekad(darr):
 
     np.testing.assert_array_equal(
@@ -40,9 +72,22 @@ def test_labels_dekad(darr):
     )
 
 
+def test_period_labels_dekad(darr):
+
+    np.testing.assert_array_equal(
+        darr.time.dekad.label,
+        ["200001d1", "200001d2", "200001d3", "200001d3", "200002d1"],
+    )
+
+
 def test_labels_dekad_single(darr):
 
     np.testing.assert_array_equal(darr.isel(time=0).time.labeler.dekad, ["200001d1"])
+
+
+def test_period_labels_dekad_single(darr):
+
+    np.testing.assert_array_equal(darr.isel(time=0).time.dekad.label, ["200001d1"])
 
 
 def test_labels_pentad(darr):
@@ -53,14 +98,32 @@ def test_labels_pentad(darr):
     )
 
 
+def test_period_labels_pentad(darr):
+
+    np.testing.assert_array_equal(
+        darr.time.pentad.label,
+        ["200001p1", "200001p3", "200001p5", "200001p6", "200002p2"],
+    )
+
+
 def test_labels_pentad_single(darr):
 
     np.testing.assert_array_equal(darr.isel(time=0).time.labeler.pentad, ["200001p1"])
 
 
+def test_period_labels_pentad_single(darr):
+
+    np.testing.assert_array_equal(darr.isel(time=0).time.pentad.label, ["200001p1"])
+
+
 def test_labels_exception(darr):
     with pytest.raises(TypeError):
         _ = darr.x.labeler.dekad
+
+
+def test_period_exception(darr):
+    with pytest.raises(TypeError):
+        _ = darr.x.dekad
 
 
 def test_algo_lroo(darr):

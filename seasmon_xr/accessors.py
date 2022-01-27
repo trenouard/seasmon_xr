@@ -11,8 +11,10 @@ from . import ops
 
 __all__ = [
     "Anomalies",
+    "Dekad",
     "IterativeAggregation",
     "LabelMaker",
+    "Pentad",
     "PixelAlgorithms",
     "WhittakerSmoother",
 ]
@@ -23,6 +25,39 @@ class AccessorBase:
 
     def __init__(self, xarray_obj):
         self._obj = xarray_obj
+
+
+class AccessorTimeBase(AccessorBase):
+    """Base class for accessors with required time dimension."""
+
+    def __init__(self, xarray_obj):
+        """Construct with DataArray|Dataset."""
+        if not np.issubdtype(xarray_obj, np.datetime64):
+            raise TypeError(
+                "'This accessor is only available for "
+                "DataArray with datetime64 dtype"
+            )
+
+        if not hasattr(xarray_obj, "time"):
+            raise ValueError("Data array is missing 'time' accessor!")
+
+        if "time" not in xarray_obj.dims:
+            xarray_obj = xarray_obj.expand_dims("time")
+        self._obj = xarray_obj
+
+        super().__init__(xarray_obj)
+
+    @property
+    def year(self):
+        return self._obj.time.dt.year
+
+    @property
+    def month(self):
+        return self._obj.time.dt.month
+
+    @property
+    def day(self):
+        return self._obj.time.dt.day
 
 
 @xarray.register_dataarray_accessor("labeler")
@@ -76,6 +111,60 @@ class LabelMaker:
     @staticmethod
     def _gen_labels(x, lbl, c):
         return f"{x.year}{x.month:02}" + f"{lbl}{int(x.day//c+1)}"
+
+
+class Period(AccessorTimeBase):
+    # pylint: disable=no-member,undefined-variable
+    """
+    Baseclass to extend time dimension with period functionality.
+
+    Adds functionality for working with periods, such as dekads and pentads
+    """
+
+    @property
+    def midx(self):
+        return (
+            self._obj.time.to_series()
+            .apply(lambda x: min(self._max_per_month, ((x.day - 1) // self._ndays) + 1))
+            .values.astype("int")
+        )
+
+    @property
+    def yidx(self):
+        return (
+            self._obj.time.to_series()
+            .apply(lambda x: ((x.month - 1) * self._max_per_month))
+            .values
+            + self.midx
+        ).astype("int")
+
+    @property
+    def label(self):
+        return (
+            self.year.astype("str")
+            .str.cat(self.month.astype("str").str.zfill(2))
+            .str.cat(self.midx.astype("str"), sep=self._label)
+        ).values
+
+
+@xarray.register_dataset_accessor("dekad")
+@xarray.register_dataarray_accessor("dekad")
+class Dekad(Period):
+    """Accessor class for dekad period."""
+
+    _ndays = 10
+    _max_per_month = 3
+    _label = "d"
+
+
+@xarray.register_dataset_accessor("pentad")
+@xarray.register_dataarray_accessor("pentad")
+class Pentad(Period):
+    """Accessor class for pentad period."""
+
+    _ndays = 5
+    _max_per_month = 6
+    _label = "p"
 
 
 @xarray.register_dataset_accessor("iteragg")
