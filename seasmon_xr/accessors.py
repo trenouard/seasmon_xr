@@ -122,7 +122,7 @@ class Period(AccessorTimeBase):
     """
 
     @property
-    def month_idx(self):
+    def midx(self):
         return (
             self._obj.time.to_series()
             .apply(lambda x: (x.day // self._cfactor) + 1)
@@ -130,12 +130,12 @@ class Period(AccessorTimeBase):
         )
 
     @property
-    def year_idx(self):
+    def yidx(self):
         return (
             self._obj.time.to_series()
             .apply(lambda x: ((x.month - 1) * self._nperiods))
             .values
-            + self.month_idx
+            + self.midx
         ).astype("int")
 
     @property
@@ -143,7 +143,7 @@ class Period(AccessorTimeBase):
         return (
             self.year.astype("str")
             .str.cat(self.month.astype("str").str.zfill(2))
-            .str.cat(self.month_idx.astype("str"), sep=self._label)
+            .str.cat(self.midx.astype("str"), sep=self._label)
         ).values
 
 

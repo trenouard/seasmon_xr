@@ -48,20 +48,20 @@ def test_period_months_pentad(darr):
     np.testing.assert_array_equal(darr.time.pentad.month, darr.time.dt.month)
 
 
-def test_period_month_idx_dekad(darr):
-    np.testing.assert_array_equal(darr.time.dekad.month_idx, [1, 2, 3, 3, 1])
+def test_period_midx_dekad(darr):
+    np.testing.assert_array_equal(darr.time.dekad.midx, [1, 2, 3, 3, 1])
 
 
-def test_period_month_idx_pentad(darr):
-    np.testing.assert_array_equal(darr.time.pentad.month_idx, [1, 3, 5, 6, 2])
+def test_period_midx_pentad(darr):
+    np.testing.assert_array_equal(darr.time.pentad.midx, [1, 3, 5, 6, 2])
 
 
-def test_period_year_idx_dekad(darr):
-    np.testing.assert_array_equal(darr.time.dekad.year_idx, [1, 2, 3, 3, 4])
+def test_period_yidx_dekad(darr):
+    np.testing.assert_array_equal(darr.time.dekad.yidx, [1, 2, 3, 3, 4])
 
 
-def test_period_year_idx_pentad(darr):
-    np.testing.assert_array_equal(darr.time.pentad.year_idx, [1, 3, 5, 6, 8])
+def test_period_yidx_pentad(darr):
+    np.testing.assert_array_equal(darr.time.pentad.yidx, [1, 3, 5, 6, 8])
 
 
 def test_labels_dekad(darr):
