@@ -125,7 +125,7 @@ class Period(AccessorTimeBase):
     def midx(self):
         return (
             self._obj.time.to_series()
-            .apply(lambda x: min(self._max_per_month, ((x.day-1) // self._ndays) + 1))
+            .apply(lambda x: min(self._max_per_month, ((x.day - 1) // self._ndays) + 1))
             .values.astype("int")
         )
 
