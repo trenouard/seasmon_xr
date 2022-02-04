@@ -134,8 +134,8 @@ class Period(AccessorTimeBase):
         return (
             self._obj.time.to_series()
             .apply(lambda x: ((x.month - 1) * self.max_per_month))
-            .to_xarray() + self.midx
-
+            .to_xarray()
+            + self.midx
         )
 
     @property
