@@ -126,7 +126,7 @@ class Period(AccessorTimeBase):
         return (
             self._obj.time.to_series()
             .apply(lambda x: min(self._max_per_month, ((x.day - 1) // self._ndays) + 1))
-            .values.astype("int")
+            .to_xarray()
         )
 
     @property
@@ -134,9 +134,9 @@ class Period(AccessorTimeBase):
         return (
             self._obj.time.to_series()
             .apply(lambda x: ((x.month - 1) * self._max_per_month))
-            .values
-            + self.midx
-        ).astype("int")
+            .to_xarray() + self.midx
+
+        )
 
     @property
     def label(self):
