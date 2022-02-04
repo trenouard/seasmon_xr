@@ -125,7 +125,7 @@ class Period(AccessorTimeBase):
     def midx(self):
         return (
             self._obj.time.to_series()
-            .apply(lambda x: min(self._max_per_month, ((x.day - 1) // self._ndays) + 1))
+            .apply(lambda x: min(self.max_per_month, ((x.day - 1) // self.ndays) + 1))
             .to_xarray()
         )
 
@@ -133,7 +133,7 @@ class Period(AccessorTimeBase):
     def yidx(self):
         return (
             self._obj.time.to_series()
-            .apply(lambda x: ((x.month - 1) * self._max_per_month))
+            .apply(lambda x: ((x.month - 1) * self.max_per_month))
             .to_xarray() + self.midx
 
         )
@@ -152,8 +152,8 @@ class Period(AccessorTimeBase):
 class Dekad(Period):
     """Accessor class for dekad period."""
 
-    _ndays = 10
-    _max_per_month = 3
+    ndays = 10
+    max_per_month = 3
     _label = "d"
 
 
@@ -162,8 +162,8 @@ class Dekad(Period):
 class Pentad(Period):
     """Accessor class for pentad period."""
 
-    _ndays = 5
-    _max_per_month = 6
+    ndays = 5
+    max_per_month = 6
     _label = "p"
 
 
