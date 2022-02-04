@@ -49,18 +49,22 @@ def test_period_months_pentad(darr):
 
 
 def test_period_midx_dekad(darr):
+    assert isinstance(darr.time.dekad.midx, xr.DataArray)
     np.testing.assert_array_equal(darr.time.dekad.midx, [1, 2, 3, 3, 1])
 
 
 def test_period_midx_pentad(darr):
+    assert isinstance(darr.time.pentad.midx, xr.DataArray)
     np.testing.assert_array_equal(darr.time.pentad.midx, [1, 3, 5, 6, 2])
 
 
 def test_period_yidx_dekad(darr):
+    assert isinstance(darr.time.dekad.yidx, xr.DataArray)
     np.testing.assert_array_equal(darr.time.dekad.yidx, [1, 2, 3, 3, 4])
 
 
 def test_period_yidx_pentad(darr):
+    assert isinstance(darr.time.pentad.yidx, xr.DataArray)
     np.testing.assert_array_equal(darr.time.pentad.yidx, [1, 3, 5, 6, 8])
 
 
