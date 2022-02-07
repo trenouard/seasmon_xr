@@ -49,18 +49,22 @@ def test_period_months_pentad(darr):
 
 
 def test_period_midx_dekad(darr):
+    assert isinstance(darr.time.dekad.midx, xr.DataArray)
     np.testing.assert_array_equal(darr.time.dekad.midx, [1, 2, 3, 3, 1])
 
 
 def test_period_midx_pentad(darr):
+    assert isinstance(darr.time.pentad.midx, xr.DataArray)
     np.testing.assert_array_equal(darr.time.pentad.midx, [1, 3, 5, 6, 2])
 
 
 def test_period_yidx_dekad(darr):
+    assert isinstance(darr.time.dekad.yidx, xr.DataArray)
     np.testing.assert_array_equal(darr.time.dekad.yidx, [1, 2, 3, 3, 4])
 
 
 def test_period_yidx_pentad(darr):
+    assert isinstance(darr.time.pentad.yidx, xr.DataArray)
     np.testing.assert_array_equal(darr.time.pentad.yidx, [1, 3, 5, 6, 8])
 
 
@@ -114,6 +118,16 @@ def test_labels_pentad_single(darr):
 def test_period_labels_pentad_single(darr):
 
     np.testing.assert_array_equal(darr.isel(time=0).time.pentad.label, ["200001p1"])
+
+
+def test_period_class_variables_dekad(darr):
+    assert darr.time.dekad.ndays == 10
+    assert darr.time.dekad.max_per_month == 3
+
+
+def test_period_class_variables_pentad(darr):
+    assert darr.time.pentad.ndays == 5
+    assert darr.time.pentad.max_per_month == 6
 
 
 def test_labels_exception(darr):
