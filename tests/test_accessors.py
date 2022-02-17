@@ -77,7 +77,7 @@ def test_labels_dekad(darr):
 
 
 def test_period_labels_dekad(darr):
-
+    assert isinstance(darr.time.dekad.label, xr.DataArray)
     np.testing.assert_array_equal(
         darr.time.dekad.label,
         ["200001d1", "200001d2", "200001d3", "200001d3", "200002d1"],
@@ -103,7 +103,7 @@ def test_labels_pentad(darr):
 
 
 def test_period_labels_pentad(darr):
-
+    assert isinstance(darr.time.pentad.label, xr.DataArray)
     np.testing.assert_array_equal(
         darr.time.pentad.label,
         ["200001p1", "200001p3", "200001p5", "200001p6", "200002p2"],
