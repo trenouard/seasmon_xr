@@ -146,6 +146,7 @@ class Period(AccessorTimeBase):
             .str.cat(self.midx.astype("str"), sep=self._label)
         )
 
+
 @xarray.register_dataset_accessor("dekad")
 @xarray.register_dataarray_accessor("dekad")
 class Dekad(Period):
