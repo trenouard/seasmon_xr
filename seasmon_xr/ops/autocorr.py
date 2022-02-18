@@ -86,7 +86,7 @@ def autocorr_1d_float(data):
     if var_X < 1e-8 or var_Y < 1e-8:
         return result
 
-    result = A * (var_X ** -0.5) * (var_Y ** -0.5)
+    result = A * (var_X**-0.5) * (var_Y**-0.5)
     return result
 
 
@@ -168,7 +168,7 @@ def autocorr_1d_int(data, nodata):
     if var_X < 1e-8 or var_Y < 1e-8:
         return result
 
-    result = A * (var_X ** -0.5) * (var_Y ** -0.5)
+    result = A * (var_X**-0.5) * (var_Y**-0.5)
     return result
 
 
