@@ -144,7 +144,7 @@ class Period(AccessorTimeBase):
             self.year.astype("str")
             .str.cat(self.month.astype("str").str.zfill(2))
             .str.cat(self.midx.astype("str"), sep=self._label)
-        ).values
+        )
 
 
 @xarray.register_dataset_accessor("dekad")
@@ -312,7 +312,7 @@ class WhittakerSmoother:
         if sg is None and s is None:
             raise ValueError("Need S or sgrid")
 
-        lmda = 10 ** sg if sg is not None else s
+        lmda = 10**sg if sg is not None else s
 
         if p is not None:
 
