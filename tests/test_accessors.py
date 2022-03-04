@@ -15,8 +15,10 @@ from seasmon_xr.ops.ws2d import ws2d
 def darr():
     np.random.seed(42)
     x = xr.DataArray(
-        np.random.randint(1, 100, (5, 2, 2)), dims=("time", "y", "x"), name="band",
-        attrs={"nodata": -9999}
+        np.random.randint(1, 100, (5, 2, 2)),
+        dims=("time", "y", "x"),
+        name="band",
+        attrs={"nodata": -9999},
     )
     x["time"] = pd.date_range(start="2000-01-01", periods=5, freq="10D")
 
@@ -32,13 +34,13 @@ def res_spi():
         ]
     )
 
+
 @pytest.fixture
 def zones():
-    x = xr.DataArray(
-        [[0, 1], [0, 1]], dims=("y", "x"), name="band"
-    )
+    x = xr.DataArray([[0, 1], [0, 1]], dims=("y", "x"), name="band")
 
     return x
+
 
 def test_period_years_dekad(darr):
     np.testing.assert_array_equal(darr.time.dekad.year, darr.time.dt.year)
@@ -775,29 +777,23 @@ def test_whit_exception(darr):
     with pytest.raises(ValueError):
         _ = darr.isel(time=0).whit
 
+
 def test_zonal_mean(darr, zones):
     res = np.array(
-       [[33.5, 82.5],
-       [72., 54.],
-       [81.5, 49.5],
-       [28., 12.],
-       [63., 16.]],
-       dtype="float64"
+        [[33.5, 82.5], [72.0, 54.0], [81.5, 49.5], [28.0, 12.0], [63.0, 16.0]],
+        dtype="float64",
     )
 
     z_ids = np.unique(zones.data)
     x = darr.zonal.mean(zones, z_ids)
     np.testing.assert_almost_equal(x, res)
 
+
 def test_zonal_mean_nodata(darr, zones):
 
     res = np.array(
-       [[15., 82.5],
-       [72., 54.],
-       [81.5, 49.5],
-       [28., 12.],
-       [63., 16.]],
-       dtype="float64"
+        [[15.0, 82.5], [72.0, 54.0], [81.5, 49.5], [28.0, 12.0], [63.0, 16.0]],
+        dtype="float64",
     )
 
     darr[0, 0, 0] = darr.nodata
@@ -806,16 +802,19 @@ def test_zonal_mean_nodata(darr, zones):
     x = darr.zonal.mean(zones, z_ids)
     np.testing.assert_almost_equal(x, res)
 
+
 def test_zonal_dimname(darr, zones):
     z_ids = np.unique(zones.data)
     x = darr.zonal.mean(zones, z_ids, dim_name="foo")
     assert x.dims == ("time", "foo")
+
 
 def test_zonal_nodata_exc(darr, zones):
     z_ids = np.unique(zones.data)
     del darr.attrs["nodata"]
     with pytest.raises(ValueError):
         _ = darr.zonal.mean(zones, z_ids)
+
 
 def test_zonal_type_exc(darr, zones):
     z_ids = np.unique(zones.data)
