@@ -582,6 +582,21 @@ class ZonalStatistics(AccessorBase):
         dim_name: str = "zones",
         name: Optional[str] = None,
     ) -> xarray.DataArray:
+        """Calculate the zonal mean.
+
+        The mean for each pixel is calculated for each zone (group) in
+        `zones`.
+
+        The zones in the `zones` raster have to be numbered in a linear fashion,
+        starting with 0 for the first zone and num_zones for the last zone.
+
+        Args:
+            zones: zonal pixels (Y,X)
+            zone_ids: list or array with zone IDs (from 0 to (n-1))
+            dtype: datatype
+            dim_name: name for new output dimension
+            name: name for output dataarray
+        """
         from .ops.zonal import do_mean  # pylint: disable=import-outside-toplevel
 
         xx = self._obj
