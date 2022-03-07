@@ -809,7 +809,7 @@ def test_zonal_mean_nodata_nan(darr, zones):
 
     z_ids = np.unique(zones.data)
     x = darr.zonal.mean(zones, z_ids)
-    np.isnan(x.data[[0, -1], :]).all()
+    assert np.isnan(x.data[[0, -1], :]).all()
 
 
 def test_zonal_dimname(darr, zones):
