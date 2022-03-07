@@ -1,6 +1,6 @@
 """Numba accelerated zonal statistics."""
 from numba import njit
-from numpy import zeros
+import numpy as np
 
 from ._helper import lazycompile
 
@@ -24,8 +24,8 @@ def do_mean(pixels, z_pixels, nodata, num_zones, dtype="float64"):
     """
     t, nr, nc = pixels.shape
 
-    sums = zeros((t, num_zones), dtype=dtype)
-    valids = zeros((t, num_zones), dtype=dtype)
+    sums = np.zeros((t, num_zones), dtype=dtype)
+    valids = np.zeros((t, num_zones), dtype=dtype)
 
     for tix in range(t):
         for rw in range(nr):
@@ -40,6 +40,6 @@ def do_mean(pixels, z_pixels, nodata, num_zones, dtype="float64"):
             if valids[tix, idx] > 0:
                 sums[tix, idx] = sums[tix, idx] / valids[tix, idx]
             else:
-                sums[tix, idx] = float("nan")
+                sums[tix, idx] = np.nan
 
     return sums
