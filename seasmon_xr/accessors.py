@@ -1,11 +1,12 @@
 """Xarray Accesor classes."""
-from typing import Union
+from typing import List, Optional, Union
 
+from dask import is_dask_collection
 import dask.array as da
+from dask.base import tokenize
 import numpy as np
 import pandas as pd
 import xarray
-from dask import is_dask_collection
 
 from . import ops
 
@@ -566,4 +567,78 @@ class PixelAlgorithms:
             input_core_dims=[["time"]],
             dask="parallelized",
             output_dtypes=["float32"],
+        )
+
+
+@xarray.register_dataarray_accessor("zonal")
+class ZonalStatistics(AccessorBase):
+    """Class to claculate zonal statistics."""
+
+    def mean(
+        self,
+        zones: xarray.DataArray,
+        zone_ids: Union[List, np.ndarray],
+        dtype: str = "float64",
+        dim_name: str = "zones",
+        name: Optional[str] = None,
+    ) -> xarray.DataArray:
+        """Calculate the zonal mean.
+
+        The mean for each pixel is calculated for each zone (group) in
+        `zones`.
+
+        The zones in the `zones` raster have to be numbered in a linear fashion,
+        starting with 0 for the first zone and num_zones for the last zone.
+
+        Args:
+            zones: zonal pixels (Y,X)
+            zone_ids: list or array with zone IDs (from 0 to (n-1))
+            dtype: datatype
+            dim_name: name for new output dimension
+            name: name for output dataarray
+        """
+        from .ops.zonal import do_mean  # pylint: disable=import-outside-toplevel
+
+        xx = self._obj
+
+        if "nodata" not in xx.attrs:
+            raise ValueError("Input xarray DataArray needs nodata attribute")
+
+        if not isinstance(zones, xarray.DataArray):
+            raise ValueError("Zones need to be xarray.DataArray!")
+
+        num_zones = len(zone_ids)
+        dims = (xx.dims[0], dim_name)
+        coords = {dims[0]: xx.coords[dims[0]], dim_name: zone_ids}
+
+        if is_dask_collection(xx):
+            dask_name = name
+            if isinstance(dask_name, str):
+                dask_name = f"{name}-{tokenize(xx.data, zones.data, dtype)}"
+
+            chunks = [xx.data.chunks[0], (num_zones,)]
+
+            data = da.map_blocks(
+                do_mean,
+                xx.data,
+                zones.data,
+                xx.nodata,
+                num_zones,
+                drop_axis=[1, 2],
+                new_axis=1,
+                chunks=chunks,
+                dtype=dtype,
+                name=dask_name,
+            )
+        else:
+
+            data = do_mean(
+                xx.data,
+                zones.data,
+                xx.nodata,
+                num_zones,
+            )
+
+        return xarray.DataArray(
+            data=data, dims=dims, coords=coords, attrs={}, name=name
         )
