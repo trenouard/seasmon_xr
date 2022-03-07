@@ -39,5 +39,8 @@ def do_mean(pixels, z_pixels, nodata, num_zones, dtype="float64"):
         for idx in range(sums.shape[1]):
             if valids[tix, idx] > 0:
                 sums[tix, idx] = sums[tix, idx] / valids[tix, idx]
+            else:
+                sums[tix, idx] = float("nan")
+            
 
     return sums
