@@ -627,7 +627,7 @@ class ZonalStatistics(AccessorBase):
                 drop_axis=[1, 2],
                 new_axis=1,
                 chunks=chunks,
-                dtype="float64",
+                dtype=dtype,
                 name=dask_name,
             )
         else:
