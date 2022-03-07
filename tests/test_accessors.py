@@ -803,6 +803,15 @@ def test_zonal_mean_nodata(darr, zones):
     np.testing.assert_almost_equal(x, res)
 
 
+def test_zonal_mean_nodata_nan(darr, zones):
+
+    darr[[0, -1], :] = darr.nodata
+
+    z_ids = np.unique(zones.data)
+    x = darr.zonal.mean(zones, z_ids)
+    np.isnan(x.data[[0, -1], :]).all()
+
+
 def test_zonal_dimname(darr, zones):
     z_ids = np.unique(zones.data)
     x = darr.zonal.mean(zones, z_ids, dim_name="foo")
