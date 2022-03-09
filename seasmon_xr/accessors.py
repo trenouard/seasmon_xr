@@ -570,6 +570,7 @@ class PixelAlgorithms:
         )
 
 
+@xarray.register_dataset_accessor("zonal")
 @xarray.register_dataarray_accessor("zonal")
 class ZonalStatistics(AccessorBase):
     """Class to claculate zonal statistics."""
@@ -600,6 +601,9 @@ class ZonalStatistics(AccessorBase):
         from .ops.zonal import do_mean  # pylint: disable=import-outside-toplevel
 
         xx = self._obj
+
+        if isinstance(xx, xarray.Dataset):
+            raise NotImplementedError("zonal needs dataarray as input")
 
         if "nodata" not in xx.attrs:
             raise ValueError("Input xarray DataArray needs nodata attribute")
@@ -642,3 +646,16 @@ class ZonalStatistics(AccessorBase):
         return xarray.DataArray(
             data=data, dims=dims, coords=coords, attrs={}, name=name
         )
+
+
+@xarray.register_dataset_accessor("hdc")
+@xarray.register_dataarray_accessor("hdc")
+class HDC:
+    """xarray accessor for HDC xarray tools."""
+
+    def __init__(self, xarray_obj):
+        self.algo = PixelAlgorithms(xarray_obj)
+        self.anom = Anomalies(xarray_obj)
+        self.iteragg = IterativeAggregation(xarray_obj)
+        self.whit = WhittakerSmoother(xarray_obj)
+        self.zonal = ZonalStatistics(xarray_obj)
