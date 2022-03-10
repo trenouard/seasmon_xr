@@ -14,7 +14,6 @@ __all__ = [
     "Anomalies",
     "Dekad",
     "IterativeAggregation",
-    "LabelMaker",
     "Pentad",
     "PixelAlgorithms",
     "WhittakerSmoother",
@@ -59,59 +58,6 @@ class AccessorTimeBase(AccessorBase):
     @property
     def day(self):
         return self._obj.time.dt.day
-
-
-@xarray.register_dataarray_accessor("labeler")
-class LabelMaker:
-    """
-    Class to extending xarray.Dataarray for 'time'.
-
-    Adds the properties labelling the time values as either
-    dekads or pentads.
-    """
-
-    def __init__(self, xarray_obj):
-        """Construct with DataArray|Dataset."""
-        if not np.issubdtype(xarray_obj, np.datetime64):
-            raise TypeError(
-                "'.labeler' accessor only available for "
-                "DataArray with datetime64 dtype"
-            )
-
-        if not hasattr(xarray_obj, "time"):
-            raise ValueError("Data array is missing 'time' accessor!")
-
-        if "time" not in xarray_obj.dims:
-            xarray_obj = xarray_obj.expand_dims("time")
-        self._obj = xarray_obj
-
-    @property
-    def dekad(self):
-        """Time values labeled as dekads."""
-        return (
-            self._obj.time.to_series()
-            .apply(
-                func=self._gen_labels,
-                args=("d", 10.5),
-            )
-            .values
-        )
-
-    @property
-    def pentad(self):
-        """Time values labeled as pentads."""
-        return (
-            self._obj.time.to_series()
-            .apply(
-                func=self._gen_labels,
-                args=("p", 5.19),
-            )
-            .values
-        )
-
-    @staticmethod
-    def _gen_labels(x, lbl, c):
-        return f"{x.year}{x.month:02}" + f"{lbl}{int(x.day//c+1)}"
 
 
 class Period(AccessorTimeBase):

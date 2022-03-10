@@ -78,14 +78,6 @@ def test_period_yidx_pentad(darr):
     np.testing.assert_array_equal(darr.time.pentad.yidx, [1, 3, 5, 6, 8])
 
 
-def test_labels_dekad(darr):
-
-    np.testing.assert_array_equal(
-        darr.time.labeler.dekad,
-        ["200001d1", "200001d2", "200001d3", "200001d3", "200002d1"],
-    )
-
-
 def test_period_labels_dekad(darr):
     assert isinstance(darr.time.dekad.label, xr.DataArray)
     np.testing.assert_array_equal(
@@ -94,22 +86,9 @@ def test_period_labels_dekad(darr):
     )
 
 
-def test_labels_dekad_single(darr):
-
-    np.testing.assert_array_equal(darr.isel(time=0).time.labeler.dekad, ["200001d1"])
-
-
 def test_period_labels_dekad_single(darr):
 
     np.testing.assert_array_equal(darr.isel(time=0).time.dekad.label, ["200001d1"])
-
-
-def test_labels_pentad(darr):
-
-    np.testing.assert_array_equal(
-        darr.time.labeler.pentad,
-        ["200001p1", "200001p3", "200001p5", "200001p6", "200002p2"],
-    )
 
 
 def test_period_labels_pentad(darr):
@@ -118,12 +97,6 @@ def test_period_labels_pentad(darr):
         darr.time.pentad.label,
         ["200001p1", "200001p3", "200001p5", "200001p6", "200002p2"],
     )
-
-
-def test_labels_pentad_single(darr):
-
-    np.testing.assert_array_equal(darr.isel(time=0).time.labeler.pentad, ["200001p1"])
-
 
 def test_period_labels_pentad_single(darr):
 
@@ -138,11 +111,6 @@ def test_period_class_variables_dekad(darr):
 def test_period_class_variables_pentad(darr):
     assert darr.time.pentad.ndays == 5
     assert darr.time.pentad.max_per_month == 6
-
-
-def test_labels_exception(darr):
-    with pytest.raises(TypeError):
-        _ = darr.x.labeler.dekad
 
 
 def test_period_exception(darr):
