@@ -8,6 +8,7 @@ import pytest
 import xarray as xr
 
 from seasmon_xr import ops
+from seasmon_xr.accessors import MissingTimeError
 from seasmon_xr.ops.ws2d import ws2d
 
 
@@ -98,6 +99,7 @@ def test_period_labels_pentad(darr):
         ["200001p1", "200001p3", "200001p5", "200001p6", "200002p2"],
     )
 
+
 def test_period_labels_pentad_single(darr):
 
     np.testing.assert_array_equal(darr.isel(time=0).time.pentad.label, ["200001p1"])
@@ -145,7 +147,9 @@ def test_anom_ratio(darr):
 def test_anom_diff(darr):
     _res = np.array([[-9, 72], [-68, -15]])
 
-    np.testing.assert_array_equal(darr.isel(time=0).hdc.anom.diff(darr.isel(time=1)), _res)
+    np.testing.assert_array_equal(
+        darr.isel(time=0).hdc.anom.diff(darr.isel(time=1)), _res
+    )
 
 
 def test_algo_autocorr(darr):
@@ -187,7 +191,9 @@ def test_algo_spi_attrs_stop(darr):
 
 
 def test_algo_spi_decoupled_1(darr, res_spi):
-    _res = darr.hdc.algo.spi(calibration_start="2000-01-01", calibration_stop="2000-02-10")
+    _res = darr.hdc.algo.spi(
+        calibration_start="2000-01-01", calibration_stop="2000-02-10"
+    )
 
     assert isinstance(_res, xr.DataArray)
     np.testing.assert_array_equal(_res, res_spi)
@@ -204,7 +210,9 @@ def test_algo_spi_decoupled_2(darr):
         ]
     )
 
-    _res = darr.hdc.algo.spi(calibration_start="2000-01-01", calibration_stop="2000-01-31")
+    _res = darr.hdc.algo.spi(
+        calibration_start="2000-01-01", calibration_stop="2000-01-31"
+    )
 
     assert isinstance(_res, xr.DataArray)
     np.testing.assert_array_equal(_res, res_spi)
@@ -260,9 +268,19 @@ def test_algo_spi_decoupled_err_4(darr):
         )
 
 
-def test_algo_exception(darr):
-    with pytest.raises(ValueError):
-        _ = darr.isel(time=0).hdc.algo
+def test_algo_spi_exception(darr):
+    with pytest.raises(MissingTimeError):
+        _ = darr.isel(time=0).hdc.algo.spi()
+
+
+def test_algo_croo_exception(darr):
+    with pytest.raises(MissingTimeError):
+        _ = darr.isel(time=0).hdc.algo.croo()
+
+
+def test_algo_lroo_exception(darr):
+    with pytest.raises(MissingTimeError):
+        _ = darr.isel(time=0).hdc.algo.lroo()
 
 
 def test_agg_sum_1(darr):
@@ -741,9 +759,19 @@ def test_whit_whitint(darr):
     np.testing.assert_array_equal(res[0, 0, :], xx_int.data.values)
 
 
-def test_whit_exception(darr):
-    with pytest.raises(ValueError):
-        _ = darr.isel(time=0).hdc.whit
+def test_whit_whits_exception(darr):
+    with pytest.raises(MissingTimeError):
+        _ = darr.isel(time=0).hdc.whit.whits(nodata=-3000)
+
+
+def test_whit_whitsvc_exception(darr):
+    with pytest.raises(MissingTimeError):
+        _ = darr.isel(time=0).hdc.whit.whitsvc(nodata=-3000)
+
+
+def test_whit_whitint_exception(darr):
+    with pytest.raises(MissingTimeError):
+        _ = darr.isel(time=0).hdc.whit.whitint(None, None)
 
 
 def test_zonal_mean(darr, zones):
