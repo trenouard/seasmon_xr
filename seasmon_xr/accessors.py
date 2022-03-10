@@ -113,9 +113,6 @@ class Pentad(Period):
     max_per_month = 6
     _label = "p"
 
-
-@xarray.register_dataset_accessor("iteragg")
-@xarray.register_dataarray_accessor("iteragg")
 class IterativeAggregation(AccessorBase):
     """Class to aggregate multiple coordinate slices."""
 
@@ -204,9 +201,6 @@ class IterativeAggregation(AccessorBase):
 
                 yield _obj
 
-
-@xarray.register_dataset_accessor("anom")
-@xarray.register_dataarray_accessor("anom")
 class Anomalies(AccessorBase):
     """Class to calculate anomalies from reference."""
 
@@ -218,9 +212,6 @@ class Anomalies(AccessorBase):
         """Calculate anomaly as difference."""
         return (self._obj + offset) - (reference + offset)
 
-
-@xarray.register_dataset_accessor("whit")
-@xarray.register_dataarray_accessor("whit")
 class WhittakerSmoother:
     """Class for applying different version of the Whittaker smoother."""
 
@@ -389,9 +380,6 @@ class WhittakerSmoother:
 
         return ds_out
 
-
-@xarray.register_dataset_accessor("algo")
-@xarray.register_dataarray_accessor("algo")
 class PixelAlgorithms:
     """Set of algorithms to be applied to pixel timeseries."""
 
@@ -515,9 +503,6 @@ class PixelAlgorithms:
             output_dtypes=["float32"],
         )
 
-
-@xarray.register_dataset_accessor("zonal")
-@xarray.register_dataarray_accessor("zonal")
 class ZonalStatistics(AccessorBase):
     """Class to claculate zonal statistics."""
 
