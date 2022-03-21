@@ -14,11 +14,14 @@ __all__ = [
     "Anomalies",
     "Dekad",
     "IterativeAggregation",
-    "LabelMaker",
     "Pentad",
     "PixelAlgorithms",
     "WhittakerSmoother",
 ]
+
+
+class MissingTimeError(Exception):
+    """Exception for missing time dimension when required."""
 
 
 class AccessorBase:
@@ -26,6 +29,11 @@ class AccessorBase:
 
     def __init__(self, xarray_obj):
         self._obj = xarray_obj
+
+    def _check_for_timedim(self):
+        if "time" not in self._obj.dims:
+            return False
+        return True
 
 
 class AccessorTimeBase(AccessorBase):
@@ -59,59 +67,6 @@ class AccessorTimeBase(AccessorBase):
     @property
     def day(self):
         return self._obj.time.dt.day
-
-
-@xarray.register_dataarray_accessor("labeler")
-class LabelMaker:
-    """
-    Class to extending xarray.Dataarray for 'time'.
-
-    Adds the properties labelling the time values as either
-    dekads or pentads.
-    """
-
-    def __init__(self, xarray_obj):
-        """Construct with DataArray|Dataset."""
-        if not np.issubdtype(xarray_obj, np.datetime64):
-            raise TypeError(
-                "'.labeler' accessor only available for "
-                "DataArray with datetime64 dtype"
-            )
-
-        if not hasattr(xarray_obj, "time"):
-            raise ValueError("Data array is missing 'time' accessor!")
-
-        if "time" not in xarray_obj.dims:
-            xarray_obj = xarray_obj.expand_dims("time")
-        self._obj = xarray_obj
-
-    @property
-    def dekad(self):
-        """Time values labeled as dekads."""
-        return (
-            self._obj.time.to_series()
-            .apply(
-                func=self._gen_labels,
-                args=("d", 10.5),
-            )
-            .values
-        )
-
-    @property
-    def pentad(self):
-        """Time values labeled as pentads."""
-        return (
-            self._obj.time.to_series()
-            .apply(
-                func=self._gen_labels,
-                args=("p", 5.19),
-            )
-            .values
-        )
-
-    @staticmethod
-    def _gen_labels(x, lbl, c):
-        return f"{x.year}{x.month:02}" + f"{lbl}{int(x.day//c+1)}"
 
 
 class Period(AccessorTimeBase):
@@ -168,8 +123,6 @@ class Pentad(Period):
     _label = "p"
 
 
-@xarray.register_dataset_accessor("iteragg")
-@xarray.register_dataarray_accessor("iteragg")
 class IterativeAggregation(AccessorBase):
     """Class to aggregate multiple coordinate slices."""
 
@@ -259,8 +212,6 @@ class IterativeAggregation(AccessorBase):
                 yield _obj
 
 
-@xarray.register_dataset_accessor("anom")
-@xarray.register_dataarray_accessor("anom")
 class Anomalies(AccessorBase):
     """Class to calculate anomalies from reference."""
 
@@ -273,19 +224,8 @@ class Anomalies(AccessorBase):
         return (self._obj + offset) - (reference + offset)
 
 
-@xarray.register_dataset_accessor("whit")
-@xarray.register_dataarray_accessor("whit")
-class WhittakerSmoother:
+class WhittakerSmoother(AccessorBase):
     """Class for applying different version of the Whittaker smoother."""
-
-    def __init__(self, xarray_obj):
-        """Construct with DataArray|Dataset."""
-        if "time" not in xarray_obj.dims:
-            raise ValueError(
-                "'.whit' can only be applied to datasets / dataarrays "
-                "with 'time' dimension!"
-            )
-        self._obj = xarray_obj
 
     def whits(
         self,
@@ -310,6 +250,8 @@ class WhittakerSmoother:
         Returns:
             ds_out: xarray.Dataset with smoothed data
         """
+        if not self._check_for_timedim():
+            raise MissingTimeError("Whittaker filter requires a time dimension!")
         if sg is None and s is None:
             raise ValueError("Need S or sgrid")
 
@@ -364,6 +306,9 @@ class WhittakerSmoother:
         Returns:
             ds_out: xarray.Dataset with smoothed data and sgrid
         """
+        if not self._check_for_timedim():
+            raise MissingTimeError("Whittaker filter requires a time dimension!")
+
         if lc is not None:
             if p is None:
                 raise ValueError(
@@ -420,6 +365,11 @@ class WhittakerSmoother:
 
     def whitint(self, labels_daily: np.ndarray, template: np.ndarray):
         """Compute temporal interpolation using the Whittaker filter."""
+        if not self._check_for_timedim():
+            raise MissingTimeError(
+                "Whittaker temporal interpolation requires a time dimension!"
+            )
+
         if self._obj.dtype != "int16":
             raise NotImplementedError(
                 "Temporal interpolation works currently only with int16 input!"
@@ -444,19 +394,8 @@ class WhittakerSmoother:
         return ds_out
 
 
-@xarray.register_dataset_accessor("algo")
-@xarray.register_dataarray_accessor("algo")
-class PixelAlgorithms:
+class PixelAlgorithms(AccessorBase):
     """Set of algorithms to be applied to pixel timeseries."""
-
-    def __init__(self, xarray_obj):
-        """Construct with DataArray|Dataset."""
-        if "time" not in xarray_obj.dims:
-            raise ValueError(
-                "'.algo' can only be applied to datasets / dataarrays "
-                "with 'time' dimension!"
-            )
-        self._obj = xarray_obj
 
     def spi(
         self,
@@ -464,6 +403,9 @@ class PixelAlgorithms:
         calibration_stop=None,
     ):
         """Calculate the SPI along the time dimension."""
+        if not self._check_for_timedim():
+            raise MissingTimeError("SPI requires a time dimension!")
+
         from .ops.spi import spifun  # pylint: disable=import-outside-toplevel
 
         tix = self._obj.get_index("time")
@@ -518,6 +460,9 @@ class PixelAlgorithms:
 
     def croo(self):
         """Compute current run of ones along time dimension."""
+        if not self._check_for_timedim():
+            raise MissingTimeError("CROO requires a time dimension!")
+
         xsort = self._obj.sortby("time", ascending=False)
         xtemp = xsort.where(xsort == 1).cumsum("time", skipna=False)
         xtemp = xtemp.where(~xtemp.isnull(), 0).argmax("time")
@@ -527,6 +472,9 @@ class PixelAlgorithms:
 
     def lroo(self):
         """Longest run of ones along time dimension."""
+        if not self._check_for_timedim():
+            raise MissingTimeError("LROO requires a time dimension!")
+
         return xarray.apply_ufunc(
             ops.lroo,
             self._obj,
@@ -570,8 +518,6 @@ class PixelAlgorithms:
         )
 
 
-@xarray.register_dataset_accessor("zonal")
-@xarray.register_dataarray_accessor("zonal")
 class ZonalStatistics(AccessorBase):
     """Class to claculate zonal statistics."""
 

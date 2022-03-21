@@ -8,6 +8,7 @@ import pytest
 import xarray as xr
 
 from seasmon_xr import ops
+from seasmon_xr.accessors import MissingTimeError
 from seasmon_xr.ops.ws2d import ws2d
 
 
@@ -80,14 +81,6 @@ def test_period_yidx_pentad(darr):
     np.testing.assert_array_equal(darr.time.pentad.yidx, [1, 3, 5, 6, 8])
 
 
-def test_labels_dekad(darr):
-
-    np.testing.assert_array_equal(
-        darr.time.labeler.dekad,
-        ["200001d1", "200001d2", "200001d3", "200001d3", "200002d1"],
-    )
-
-
 def test_period_labels_dekad(darr):
     assert isinstance(darr.time.dekad.label, xr.DataArray)
     np.testing.assert_array_equal(
@@ -96,22 +89,9 @@ def test_period_labels_dekad(darr):
     )
 
 
-def test_labels_dekad_single(darr):
-
-    np.testing.assert_array_equal(darr.isel(time=0).time.labeler.dekad, ["200001d1"])
-
-
 def test_period_labels_dekad_single(darr):
 
     np.testing.assert_array_equal(darr.isel(time=0).time.dekad.label, ["200001d1"])
-
-
-def test_labels_pentad(darr):
-
-    np.testing.assert_array_equal(
-        darr.time.labeler.pentad,
-        ["200001p1", "200001p3", "200001p5", "200001p6", "200002p2"],
-    )
 
 
 def test_period_labels_pentad(darr):
@@ -120,11 +100,6 @@ def test_period_labels_pentad(darr):
         darr.time.pentad.label,
         ["200001p1", "200001p3", "200001p5", "200001p6", "200002p2"],
     )
-
-
-def test_labels_pentad_single(darr):
-
-    np.testing.assert_array_equal(darr.isel(time=0).time.labeler.pentad, ["200001p1"])
 
 
 def test_period_labels_pentad_single(darr):
@@ -142,11 +117,6 @@ def test_period_class_variables_pentad(darr):
     assert darr.time.pentad.max_per_month == 6
 
 
-def test_labels_exception(darr):
-    with pytest.raises(TypeError):
-        _ = darr.x.labeler.dekad
-
-
 def test_period_exception(darr):
     with pytest.raises(TypeError):
         _ = darr.x.dekad
@@ -155,7 +125,7 @@ def test_period_exception(darr):
 def test_algo_lroo(darr):
     _res = np.array([[3, 0], [4, 2]], dtype="uint8")
 
-    darr_lroo = ((darr > 30) * 1).astype("uint8").algo.lroo()
+    darr_lroo = ((darr > 30) * 1).astype("uint8").hdc.algo.lroo()
     assert isinstance(darr_lroo, xr.DataArray)
     np.testing.assert_array_equal(darr_lroo, _res)
 
@@ -163,7 +133,7 @@ def test_algo_lroo(darr):
 def test_algo_croo(darr):
     _res = np.array([[1, 0], [4, 0]], dtype="uint8")
 
-    darr_croo = ((darr > 30) * 1).algo.croo()
+    darr_croo = ((darr > 30) * 1).hdc.algo.croo()
     assert isinstance(darr_croo, xr.DataArray)
     np.testing.assert_array_equal(darr_croo, _res)
 
@@ -172,56 +142,60 @@ def test_anom_ratio(darr):
     _res = np.array([[85.0, 443.0], [18.0, 83.0]])
 
     np.testing.assert_array_equal(
-        darr.isel(time=0).anom.ratio(darr.isel(time=1)).round(), _res
+        darr.isel(time=0).hdc.anom.ratio(darr.isel(time=1)).round(), _res
     )
 
 
 def test_anom_diff(darr):
     _res = np.array([[-9, 72], [-68, -15]])
 
-    np.testing.assert_array_equal(darr.isel(time=0).anom.diff(darr.isel(time=1)), _res)
+    np.testing.assert_array_equal(
+        darr.isel(time=0).hdc.anom.diff(darr.isel(time=1)), _res
+    )
 
 
 def test_algo_autocorr(darr):
     _res = np.array(
         [[-0.7395127, -0.69477093], [-0.1768683, 0.6412078]], dtype="float32"
     )
-    darr_autocorr = darr.algo.autocorr()
+    darr_autocorr = darr.hdc.algo.autocorr()
     assert isinstance(darr_autocorr, xr.DataArray)
     np.testing.assert_almost_equal(darr_autocorr, _res)
 
 
 def test_algo_spi(darr, res_spi):
-    _res = darr.algo.spi()
+    _res = darr.hdc.algo.spi()
     assert isinstance(_res, xr.DataArray)
     np.testing.assert_array_equal(_res, res_spi)
 
 
 def test_algo_spi_transp(darr, res_spi):
     _darr = darr.transpose(..., "time")
-    _res = _darr.algo.spi()
+    _res = _darr.hdc.algo.spi()
     assert isinstance(_res, xr.DataArray)
     np.testing.assert_array_equal(_res, res_spi)
 
 
 def test_algo_spi_attrs_default(darr):
-    _res = darr.algo.spi()
+    _res = darr.hdc.algo.spi()
     assert _res.attrs["spi_calibration_start"] == str(darr.time.dt.date[0].values)
     assert _res.attrs["spi_calibration_stop"] == str(darr.time.dt.date[-1].values)
 
 
 def test_algo_spi_attrs_start(darr):
-    _res = darr.algo.spi(calibration_start="2000-01-02")
+    _res = darr.hdc.algo.spi(calibration_start="2000-01-02")
     assert _res.attrs["spi_calibration_start"] == "2000-01-11"
 
 
 def test_algo_spi_attrs_stop(darr):
-    _res = darr.algo.spi(calibration_stop="2000-02-09")
+    _res = darr.hdc.algo.spi(calibration_stop="2000-02-09")
     assert _res.attrs["spi_calibration_stop"] == "2000-01-31"
 
 
 def test_algo_spi_decoupled_1(darr, res_spi):
-    _res = darr.algo.spi(calibration_start="2000-01-01", calibration_stop="2000-02-10")
+    _res = darr.hdc.algo.spi(
+        calibration_start="2000-01-01", calibration_stop="2000-02-10"
+    )
 
     assert isinstance(_res, xr.DataArray)
     np.testing.assert_array_equal(_res, res_spi)
@@ -238,7 +212,9 @@ def test_algo_spi_decoupled_2(darr):
         ]
     )
 
-    _res = darr.algo.spi(calibration_start="2000-01-01", calibration_stop="2000-01-31")
+    _res = darr.hdc.algo.spi(
+        calibration_start="2000-01-01", calibration_stop="2000-01-31"
+    )
 
     assert isinstance(_res, xr.DataArray)
     np.testing.assert_array_equal(_res, res_spi)
@@ -255,7 +231,7 @@ def test_algo_spi_decoupled_3(darr):
         ]
     )
 
-    _res = darr.algo.spi(calibration_start="2000-01-11")
+    _res = darr.hdc.algo.spi(calibration_start="2000-01-11")
 
     assert isinstance(_res, xr.DataArray)
     np.testing.assert_array_equal(_res, res_spi)
@@ -266,21 +242,21 @@ def test_algo_spi_decoupled_3(darr):
 
 def test_algo_spi_decoupled_err_1(darr):
     with pytest.raises(ValueError):
-        _res = darr.algo.spi(
+        _res = darr.hdc.algo.spi(
             calibration_start="2000-03-01",
         )
 
 
 def test_algo_spi_decoupled_err_2(darr):
     with pytest.raises(ValueError):
-        _res = darr.algo.spi(
+        _res = darr.hdc.algo.spi(
             calibration_stop="1999-01-01",
         )
 
 
 def test_algo_spi_decoupled_err_3(darr):
     with pytest.raises(ValueError):
-        _res = darr.algo.spi(
+        _res = darr.hdc.algo.spi(
             calibration_start="2000-01-01",
             calibration_stop="2000-01-01",
         )
@@ -288,21 +264,31 @@ def test_algo_spi_decoupled_err_3(darr):
 
 def test_algo_spi_decoupled_err_4(darr):
     with pytest.raises(ValueError):
-        _res = darr.algo.spi(
+        _res = darr.hdc.algo.spi(
             calibration_start="2000-02-01",
             calibration_stop="2000-01-01",
         )
 
 
-def test_algo_exception(darr):
-    with pytest.raises(ValueError):
-        _ = darr.isel(time=0).algo
+def test_algo_spi_exception(darr):
+    with pytest.raises(MissingTimeError):
+        _ = darr.isel(time=0).hdc.algo.spi()
+
+
+def test_algo_croo_exception(darr):
+    with pytest.raises(MissingTimeError):
+        _ = darr.isel(time=0).hdc.algo.croo()
+
+
+def test_algo_lroo_exception(darr):
+    with pytest.raises(MissingTimeError):
+        _ = darr.isel(time=0).hdc.algo.lroo()
 
 
 def test_agg_sum_1(darr):
     n = 0
     ii = -1
-    for _x in darr.iteragg.sum(1):
+    for _x in darr.hdc.iteragg.sum(1):
         np.testing.assert_array_equal(_x.squeeze(), darr[ii, :])
         assert _x.attrs["agg_n"] == 1
         assert _x.time == darr.time[ii]
@@ -314,7 +300,7 @@ def test_agg_sum_1_lim_begin(darr):
     n = 0
     begin = "2000-01-21"
     ii = darr.time.to_index().get_loc(begin)
-    for _x in darr.iteragg.sum(1, begin=begin):
+    for _x in darr.hdc.iteragg.sum(1, begin=begin):
         np.testing.assert_array_equal(_x.squeeze(), darr[ii, :])
         assert _x.attrs["agg_n"] == 1
         assert _x.time == darr.time[ii]
@@ -328,7 +314,7 @@ def test_agg_sum_1_lim_end(darr):
     end = "2000-01-21"
     ii = -1
     _last_x = None
-    for _x in darr.iteragg.sum(1, end=end):
+    for _x in darr.hdc.iteragg.sum(1, end=end):
         np.testing.assert_array_equal(_x.squeeze(), darr[ii, :])
         assert _x.attrs["agg_n"] == 1
         assert _x.time == darr.time[ii]
@@ -346,7 +332,7 @@ def test_agg_sum_1_lim_begin_end(darr):
     end = "2000-01-11"
     ii = darr.time.to_index().get_loc(begin)
     _last_x = None
-    for _x in darr.iteragg.sum(1, begin=begin, end=end):
+    for _x in darr.hdc.iteragg.sum(1, begin=begin, end=end):
         np.testing.assert_array_equal(_x.squeeze(), darr[ii, :])
         assert _x.attrs["agg_n"] == 1
         assert _x.time == darr.time[ii]
@@ -361,7 +347,7 @@ def test_agg_sum_1_lim_begin_end(darr):
 
 def test_agg_sum_3(darr):
     n = 0
-    for _x in darr.iteragg.sum(n=3):
+    for _x in darr.hdc.iteragg.sum(n=3):
         np.testing.assert_array_equal(
             _x.squeeze(),
             darr.sel(time=slice(_x.attrs["agg_start"], _x.attrs["agg_stop"])).sum(
@@ -377,7 +363,7 @@ def test_agg_sum_3(darr):
 def test_agg_mean_1(darr):
     n = 0
     ii = -1
-    for _x in darr.iteragg.mean(1):
+    for _x in darr.hdc.iteragg.mean(1):
         np.testing.assert_array_equal(_x.squeeze(), darr[ii, :])
         assert _x.attrs["agg_n"] == 1
         assert _x.time == darr.time[ii]
@@ -390,7 +376,7 @@ def test_agg_mean_1_lim_begin(darr):
     n = 0
     begin = "2000-01-21"
     ii = darr.time.to_index().get_loc(begin)
-    for _x in darr.iteragg.mean(1, begin=begin):
+    for _x in darr.hdc.iteragg.mean(1, begin=begin):
         np.testing.assert_array_equal(_x.squeeze(), darr[ii, :])
         assert _x.attrs["agg_n"] == 1
         assert _x.time == darr.time[ii]
@@ -404,7 +390,7 @@ def test_agg_mean_1_lim_end(darr):
     end = "2000-01-21"
     ii = -1
     _last_x = None
-    for _x in darr.iteragg.mean(1, end=end):
+    for _x in darr.hdc.iteragg.mean(1, end=end):
         np.testing.assert_array_equal(_x.squeeze(), darr[ii, :])
         assert _x.attrs["agg_n"] == 1
         assert _x.time == darr.time[ii]
@@ -422,7 +408,7 @@ def test_agg_mean_1_lim_begin_end(darr):
     end = "2000-01-11"
     ii = darr.time.to_index().get_loc(begin)
     _last_x = None
-    for _x in darr.iteragg.mean(1, begin=begin, end=end):
+    for _x in darr.hdc.iteragg.mean(1, begin=begin, end=end):
         np.testing.assert_array_equal(_x.squeeze(), darr[ii, :])
         assert _x.attrs["agg_n"] == 1
         assert _x.time == darr.time[ii]
@@ -436,7 +422,7 @@ def test_agg_mean_1_lim_begin_end(darr):
 
 def test_agg_mean_3(darr):
     n = 0
-    for _x in darr.iteragg.mean(3):
+    for _x in darr.hdc.iteragg.mean(3):
         np.testing.assert_array_equal(
             _x.squeeze(),
             darr.sel(time=slice(_x.attrs["agg_start"], _x.attrs["agg_stop"])).mean(
@@ -451,7 +437,7 @@ def test_agg_mean_3(darr):
 
 def test_agg_full_3(darr):
     n = 0
-    for _x in darr.iteragg.full(3):
+    for _x in darr.hdc.iteragg.full(3):
         np.testing.assert_array_equal(
             _x.squeeze(),
             darr.sel(time=slice(_x.attrs["agg_start"], _x.attrs["agg_stop"])),
@@ -472,7 +458,7 @@ def test_whit_whits_s(darr):
         ],
         dtype="int16",
     )
-    _darr = darr.whit.whits(nodata=0, s=10)
+    _darr = darr.hdc.whit.whits(nodata=0, s=10)
     np.testing.assert_array_equal(_darr, _res)
 
     y = darr[:, 0, 0].astype("float64").data
@@ -491,7 +477,7 @@ def test_whit_whits_sg(darr):
         ],
         dtype="int16",
     )
-    _darr = darr.whit.whits(nodata=0, sg=sg)
+    _darr = darr.hdc.whit.whits(nodata=0, sg=sg)
     np.testing.assert_array_equal(_darr, _res)
 
     y = darr[:, 0, 0].astype("float64").data
@@ -505,7 +491,7 @@ def test_whit_whits_sg(darr):
 def test_whit_whits_sg_zeros(darr):
     sg = np.full((2, 2), -np.inf)
     _res = darr.transpose(..., "time")
-    _darr = darr.whit.whits(nodata=0, sg=sg)
+    _darr = darr.hdc.whit.whits(nodata=0, sg=sg)
     np.testing.assert_array_equal(_darr, _res)
 
 
@@ -518,7 +504,7 @@ def test_whit_whits_sg_p(darr):
         ],
         dtype="int16",
     )
-    _darr = darr.whit.whits(nodata=0, sg=sg, p=0.90)
+    _darr = darr.hdc.whit.whits(nodata=0, sg=sg, p=0.90)
     np.testing.assert_array_equal(_darr, _res)
 
     y = darr[:, 0, 0].astype("float64").data
@@ -531,7 +517,7 @@ def test_whit_whits_sg_p(darr):
 def test_whit_whits_sg_p_zeros(darr):
     sg = np.full((2, 2), -np.inf)
     _res = darr.transpose(..., "time")
-    _darr = darr.whit.whits(nodata=0, sg=sg, p=0.90)
+    _darr = darr.hdc.whit.whits(nodata=0, sg=sg, p=0.90)
     np.testing.assert_array_equal(_darr, _res)
 
 
@@ -544,7 +530,7 @@ def test_whit_whitsvc(darr):
         ],
         dtype="int16",
     )
-    _darr = darr.whit.whitsvc(nodata=0, srange=srange)
+    _darr = darr.hdc.whit.whitsvc(nodata=0, srange=srange)
     assert isinstance(_darr, xr.Dataset)
     assert "band" in _darr
     assert "sgrid" in _darr
@@ -571,7 +557,7 @@ def test_whit_whitsvc_unnamed(darr):
     )
 
     darr.name = None
-    _darr = darr.whit.whitsvc(nodata=0, srange=srange)
+    _darr = darr.hdc.whit.whitsvc(nodata=0, srange=srange)
     assert isinstance(_darr, xr.Dataset)
     assert "band" in _darr
     assert "sgrid" in _darr
@@ -596,7 +582,7 @@ def test_whit_whitsvcp(darr):
         ],
         dtype="int16",
     )
-    _darr = darr.whit.whitsvc(nodata=0, srange=srange, p=0.90)
+    _darr = darr.hdc.whit.whitsvc(nodata=0, srange=srange, p=0.90)
     assert isinstance(_darr, xr.Dataset)
     assert "band" in _darr
     assert "sgrid" in _darr
@@ -623,7 +609,7 @@ def test_whit_whitsvcp_unnamed(darr):
     )
 
     darr.name = None
-    _darr = darr.whit.whitsvc(nodata=0, srange=srange, p=0.90)
+    _darr = darr.hdc.whit.whitsvc(nodata=0, srange=srange, p=0.90)
     assert isinstance(_darr, xr.Dataset)
     assert "band" in _darr
     assert "sgrid" in _darr
@@ -754,7 +740,7 @@ def test_whit_whitint(darr):
     )
 
     temp = template.copy()
-    res = darr.astype("int16").whit.whitint(labels_daily, temp)
+    res = darr.astype("int16").hdc.whit.whitint(labels_daily, temp)
     assert "newtime" in res.dims
     assert res.newtime.size == 5
 
@@ -775,9 +761,19 @@ def test_whit_whitint(darr):
     np.testing.assert_array_equal(res[0, 0, :], xx_int.data.values)
 
 
-def test_whit_exception(darr):
-    with pytest.raises(ValueError):
-        _ = darr.isel(time=0).whit
+def test_whit_whits_exception(darr):
+    with pytest.raises(MissingTimeError):
+        _ = darr.isel(time=0).hdc.whit.whits(nodata=-3000)
+
+
+def test_whit_whitsvc_exception(darr):
+    with pytest.raises(MissingTimeError):
+        _ = darr.isel(time=0).hdc.whit.whitsvc(nodata=-3000)
+
+
+def test_whit_whitint_exception(darr):
+    with pytest.raises(MissingTimeError):
+        _ = darr.isel(time=0).hdc.whit.whitint(None, None)
 
 
 def test_zonal_mean(darr, zones):
@@ -787,7 +783,7 @@ def test_zonal_mean(darr, zones):
     )
 
     z_ids = np.unique(zones.data)
-    x = darr.zonal.mean(zones, z_ids)
+    x = darr.hdc.zonal.mean(zones, z_ids)
     np.testing.assert_almost_equal(x, res)
 
 
@@ -801,7 +797,7 @@ def test_zonal_mean_nodata(darr, zones):
     darr[0, 0, 0] = darr.nodata
 
     z_ids = np.unique(zones.data)
-    x = darr.zonal.mean(zones, z_ids)
+    x = darr.hdc.zonal.mean(zones, z_ids)
     np.testing.assert_almost_equal(x, res)
 
 
@@ -810,7 +806,7 @@ def test_zonal_mean_nodata_nan(darr, zones):
     darr[[0, -1], :] = darr.nodata
 
     z_ids = np.unique(zones.data)
-    x = darr.zonal.mean(zones, z_ids)
+    x = darr.hdc.zonal.mean(zones, z_ids)
     assert np.isnan(x.data[[0, -1], :]).all()
 
 
@@ -829,7 +825,7 @@ def test_zonal_zone_nodata_nan(darr, zones):
 
 def test_zonal_dimname(darr, zones):
     z_ids = np.unique(zones.data)
-    x = darr.zonal.mean(zones, z_ids, dim_name="foo")
+    x = darr.hdc.zonal.mean(zones, z_ids, dim_name="foo")
     assert x.dims == ("time", "foo")
 
 
@@ -837,7 +833,7 @@ def test_zonal_nodata_exc(darr, zones):
     z_ids = np.unique(zones.data)
     del darr.attrs["nodata"]
     with pytest.raises(ValueError):
-        _ = darr.zonal.mean(zones, z_ids)
+        _ = darr.hdc.zonal.mean(zones, z_ids)
 
 
 def test_zonal_zone_nodata_exc(darr, zones):
@@ -850,4 +846,4 @@ def test_zonal_zone_nodata_exc(darr, zones):
 def test_zonal_type_exc(darr, zones):
     z_ids = np.unique(zones.data)
     with pytest.raises(ValueError):
-        _ = darr.zonal.mean(zones.data, z_ids)
+        _ = darr.hdc.zonal.mean(zones.data, z_ids)
