@@ -810,6 +810,21 @@ def test_zonal_mean_nodata_nan(darr, zones):
     assert np.isnan(x.data[[0, -1], :]).all()
 
 
+def test_zonal_mean_nodata_nan_float(darr, zones):
+
+    res = np.array(
+        [[15.0, 82.5], [72.0, 54.0], [81.5, 49.5], [28.0, 12.0], [63.0, 16.0]],
+        dtype="float64",
+    )
+
+    darr = darr.astype("float64")
+    darr[0, 0, 0] = "nan"
+
+    z_ids = np.unique(zones.data)
+    x = darr.hdc.zonal.mean(zones, z_ids)
+    np.testing.assert_almost_equal(x, res)
+
+
 def test_zonal_zone_nodata_nan(darr, zones):
 
     res = np.array(

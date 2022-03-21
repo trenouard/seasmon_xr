@@ -560,6 +560,9 @@ class ZonalStatistics(AccessorBase):
         if "nodata" not in zones.attrs:
             raise ValueError("Zones xarray DataArray needs nodata attribute")
 
+        # set null values to nodata value
+        xx = xx.where(~xx.isnull(), xx.nodata).astype(xx.dtype)
+
         num_zones = len(zone_ids)
         dims = (xx.dims[0], dim_name)
         coords = {dims[0]: xx.coords[dims[0]], dim_name: zone_ids}
