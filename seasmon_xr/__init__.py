@@ -5,7 +5,6 @@ from ._version import __version__
 from .accessors import (
     Anomalies,
     IterativeAggregation,
-    LabelMaker,
     PixelAlgorithms,
     WhittakerSmoother,
 )
@@ -13,7 +12,6 @@ from .accessors import (
 __all__ = (
     "Anomalies",
     "IterativeAggregation",
-    "LabelMaker",
     "PixelAlgorithms",
     "WhittakerSmoother",
     "__version__",
