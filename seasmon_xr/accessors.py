@@ -561,7 +561,7 @@ class ZonalStatistics(AccessorBase):
             raise ValueError("Zones xarray DataArray needs nodata attribute")
 
         # set null values to nodata value
-        xx = xx.where(~xx.isnull(), xx.nodata).astype(xx.dtype)
+        xx = xx.where(xx.notnull(), xx.nodata)
 
         num_zones = len(zone_ids)
         dims = (xx.dims[0], dim_name)
