@@ -6,7 +6,7 @@ from ._helper import lazycompile
 
 
 @lazycompile(njit)
-def do_mean(pixels, z_pixels, nodata, num_zones, dtype="float64"):
+def do_mean(pixels, z_pixels, num_zones, nodata, z_nodata, dtype="float64"):
     """Calculate the zonal mean.
 
     The mean for each pixel of `pixels` is calculated for each zone in
@@ -32,7 +32,7 @@ def do_mean(pixels, z_pixels, nodata, num_zones, dtype="float64"):
             for cl in range(nc):
                 pix = pixels[tix, rw, cl]
                 z_idx = z_pixels[rw, cl]
-                if pix != nodata and z_idx >= 0:
+                if (pix != nodata) and (z_idx != z_nodata):
                     sums[tix, z_idx] += pix
                     valids[tix, z_idx] += 1
 

@@ -38,7 +38,9 @@ def res_spi():
 
 @pytest.fixture
 def zones():
-    x = xr.DataArray([[0, 1], [0, 1]], dims=("y", "x"), name="band")
+    x = xr.DataArray(
+        [[0, 1], [0, 1]], dims=("y", "x"), name="band", attrs={"nodata": -1}
+    )
 
     return x
 
@@ -808,6 +810,34 @@ def test_zonal_mean_nodata_nan(darr, zones):
     assert np.isnan(x.data[[0, -1], :]).all()
 
 
+def test_zonal_mean_nodata_nan_float(darr, zones):
+
+    res = np.array(
+        [[15.0, 82.5], [72.0, 54.0], [81.5, 49.5], [28.0, 12.0], [63.0, 16.0]],
+        dtype="float64",
+    )
+
+    darr = darr.astype("float64")
+    darr[0, 0, 0] = "nan"
+
+    z_ids = np.unique(zones.data)
+    x = darr.hdc.zonal.mean(zones, z_ids)
+    np.testing.assert_almost_equal(x, res)
+
+
+def test_zonal_zone_nodata_nan(darr, zones):
+
+    res = np.array(
+        [["nan", 82.5], ["nan", 54.0], ["nan", 49.5], ["nan", 12.0], ["nan", 16.0]],
+        dtype="float64",
+    )
+
+    zones.attrs = {"nodata": 0}
+    z_ids = np.unique(zones.data)
+    x = darr.hdc.zonal.mean(zones, z_ids, dim_name="foo")
+    np.testing.assert_almost_equal(x, res)
+
+
 def test_zonal_dimname(darr, zones):
     z_ids = np.unique(zones.data)
     x = darr.hdc.zonal.mean(zones, z_ids, dim_name="foo")
@@ -817,6 +847,13 @@ def test_zonal_dimname(darr, zones):
 def test_zonal_nodata_exc(darr, zones):
     z_ids = np.unique(zones.data)
     del darr.attrs["nodata"]
+    with pytest.raises(ValueError):
+        _ = darr.hdc.zonal.mean(zones, z_ids)
+
+
+def test_zonal_zone_nodata_exc(darr, zones):
+    z_ids = np.unique(zones.data)
+    del zones.attrs["nodata"]
     with pytest.raises(ValueError):
         _ = darr.hdc.zonal.mean(zones, z_ids)
 

@@ -557,6 +557,12 @@ class ZonalStatistics(AccessorBase):
         if not isinstance(zones, xarray.DataArray):
             raise ValueError("Zones need to be xarray.DataArray!")
 
+        if "nodata" not in zones.attrs:
+            raise ValueError("Zones xarray DataArray needs nodata attribute")
+
+        # set null values to nodata value
+        xx = xx.where(xx.notnull(), xx.nodata)
+
         num_zones = len(zone_ids)
         dims = (xx.dims[0], dim_name)
         coords = {dims[0]: xx.coords[dims[0]], dim_name: zone_ids}
@@ -572,8 +578,9 @@ class ZonalStatistics(AccessorBase):
                 do_mean,
                 xx.data,
                 zones.data,
-                xx.nodata,
                 num_zones,
+                xx.nodata,
+                zones.nodata,
                 drop_axis=[1, 2],
                 new_axis=1,
                 chunks=chunks,
@@ -585,8 +592,9 @@ class ZonalStatistics(AccessorBase):
             data = do_mean(
                 xx.data,
                 zones.data,
-                xx.nodata,
                 num_zones,
+                xx.nodata,
+                zones.nodata,
             )
 
         return xarray.DataArray(
