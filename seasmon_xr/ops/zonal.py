@@ -10,10 +10,12 @@ def do_mean(pixels, z_pixels, num_zones, nodata, z_nodata, dtype="float64"):
     """Calculate the zonal mean.
 
     The mean for each pixel of `pixels` is calculated for each zone in
-    `z_pixels`.
+    `z_pixels` and returned with the number of valid pixels
 
     The zones in `z_pixels` have to be numbered in a linear fashion,
     starting with 0 for the first zone and num_zones for the last zone.
+
+    The shape of the returned array is (T, num_zones, 2).
 
     Args:
         pixels: input value pixels (T,Y,X)
@@ -24,8 +26,9 @@ def do_mean(pixels, z_pixels, num_zones, nodata, z_nodata, dtype="float64"):
     """
     t, nr, nc = pixels.shape
 
-    sums = np.zeros((t, num_zones), dtype=dtype)
-    valids = np.zeros((t, num_zones), dtype=dtype)
+    result = np.zeros((t, num_zones, 2), dtype=dtype)
+    # 0 mean
+    # 1 valids
 
     for tix in range(t):
         for rw in range(nr):
@@ -33,13 +36,13 @@ def do_mean(pixels, z_pixels, num_zones, nodata, z_nodata, dtype="float64"):
                 pix = pixels[tix, rw, cl]
                 z_idx = z_pixels[rw, cl]
                 if (pix != nodata) and (z_idx != z_nodata):
-                    sums[tix, z_idx] += pix
-                    valids[tix, z_idx] += 1
+                    result[tix, z_idx, 0] += pix
+                    result[tix, z_idx, 1] += 1
 
-        for idx in range(sums.shape[1]):
-            if valids[tix, idx] > 0:
-                sums[tix, idx] = sums[tix, idx] / valids[tix, idx]
+        for idx in range(result.shape[1]):
+            if result[tix, idx, 1] > 0:
+                result[tix, idx, 0] = result[tix, idx, 0] / result[tix, idx, 1]
             else:
-                sums[tix, idx] = np.nan
+                result[tix, idx, 0] = np.nan
 
-    return sums
+    return result
