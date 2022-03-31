@@ -564,15 +564,19 @@ class ZonalStatistics(AccessorBase):
         xx = xx.where(xx.notnull(), xx.nodata)
 
         num_zones = len(zone_ids)
-        dims = (xx.dims[0], dim_name)
-        coords = {dims[0]: xx.coords[dims[0]], dim_name: zone_ids}
+        dims = (xx.dims[0], dim_name, "stat")
+        coords = {
+            dims[0]: xx.coords[dims[0]],
+            dim_name: zone_ids,
+            "stat": ["mean", "valid"],
+        }
 
         if is_dask_collection(xx):
             dask_name = name
             if isinstance(dask_name, str):
                 dask_name = f"{name}-{tokenize(xx.data, zones.data, dtype)}"
 
-            chunks = [xx.data.chunks[0], (num_zones,)]
+            chunks = [xx.data.chunks[0], (num_zones,), (2,)]
 
             data = da.map_blocks(
                 do_mean,
@@ -582,7 +586,7 @@ class ZonalStatistics(AccessorBase):
                 xx.nodata,
                 zones.nodata,
                 drop_axis=[1, 2],
-                new_axis=1,
+                new_axis=[1, 2],
                 chunks=chunks,
                 dtype=dtype,
                 name=dask_name,

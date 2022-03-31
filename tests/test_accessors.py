@@ -777,20 +777,38 @@ def test_whit_whitint_exception(darr):
 
 
 def test_zonal_mean(darr, zones):
+
     res = np.array(
-        [[33.5, 82.5], [72.0, 54.0], [81.5, 49.5], [28.0, 12.0], [63.0, 16.0]],
+        np.array(
+            [
+                [[33.5, 2.0], [82.5, 2.0]],
+                [[72.0, 2.0], [54.0, 2.0]],
+                [[81.5, 2.0], [49.5, 2.0]],
+                [[28.0, 2.0], [12.0, 2.0]],
+                [[63.0, 2.0], [16.0, 2.0]],
+            ]
+        ),
         dtype="float64",
     )
 
     z_ids = np.unique(zones.data)
     x = darr.hdc.zonal.mean(zones, z_ids)
+    assert x.shape == (5, 2, 2)
+    np.testing.assert_equal(x.coords["zones"].data, [0, 1])
+    assert list(x.coords["stat"].values) == ["mean", "valid"]
     np.testing.assert_almost_equal(x, res)
 
 
 def test_zonal_mean_nodata(darr, zones):
 
     res = np.array(
-        [[15.0, 82.5], [72.0, 54.0], [81.5, 49.5], [28.0, 12.0], [63.0, 16.0]],
+        [
+            [[15.0, 1.0], [82.5, 2.0]],
+            [[72.0, 2.0], [54.0, 2.0]],
+            [[81.5, 2.0], [49.5, 2.0]],
+            [[28.0, 2.0], [12.0, 2.0]],
+            [[63.0, 2.0], [16.0, 2.0]],
+        ],
         dtype="float64",
     )
 
@@ -807,13 +825,20 @@ def test_zonal_mean_nodata_nan(darr, zones):
 
     z_ids = np.unique(zones.data)
     x = darr.hdc.zonal.mean(zones, z_ids)
-    assert np.isnan(x.data[[0, -1], :]).all()
+    assert np.isnan(x.data[[0, -1], :, 0]).all()
+    assert np.all(x.data[[0, -1], :, 1] == 0)
 
 
 def test_zonal_mean_nodata_nan_float(darr, zones):
 
     res = np.array(
-        [[15.0, 82.5], [72.0, 54.0], [81.5, 49.5], [28.0, 12.0], [63.0, 16.0]],
+        [
+            [[15.0, 1.0], [82.5, 2.0]],
+            [[72.0, 2.0], [54.0, 2.0]],
+            [[81.5, 2.0], [49.5, 2.0]],
+            [[28.0, 2.0], [12.0, 2.0]],
+            [[63.0, 2.0], [16.0, 2.0]],
+        ],
         dtype="float64",
     )
 
@@ -828,7 +853,13 @@ def test_zonal_mean_nodata_nan_float(darr, zones):
 def test_zonal_zone_nodata_nan(darr, zones):
 
     res = np.array(
-        [["nan", 82.5], ["nan", 54.0], ["nan", 49.5], ["nan", 12.0], ["nan", 16.0]],
+        [
+            [["nan", 0.0], [82.5, 2.0]],
+            [["nan", 0.0], [54.0, 2.0]],
+            [["nan", 0.0], [49.5, 2.0]],
+            [["nan", 0.0], [12.0, 2.0]],
+            [["nan", 0.0], [16.0, 2.0]],
+        ],
         dtype="float64",
     )
 
@@ -841,7 +872,7 @@ def test_zonal_zone_nodata_nan(darr, zones):
 def test_zonal_dimname(darr, zones):
     z_ids = np.unique(zones.data)
     x = darr.hdc.zonal.mean(zones, z_ids, dim_name="foo")
-    assert x.dims == ("time", "foo")
+    assert x.dims == ("time", "foo", "stat")
 
 
 def test_zonal_nodata_exc(darr, zones):
