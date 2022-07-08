@@ -1,6 +1,6 @@
 """Numba accelerated Whittaker functions."""
 # pyright: reportGeneralTypeIssues=false
-# pylint: disable=C0103,C0301,E0401,R0912,R0913,R0914,R0915
+# pylint: disable=C0103,C0301,E0401,R0912,R0913,R0914,R0915,too-many-lines
 from math import log, pow, sqrt  # pylint: disable=W0622
 from typing import Union
 
