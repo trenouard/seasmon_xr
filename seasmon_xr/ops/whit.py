@@ -759,7 +759,7 @@ def ws2dwcvp(y, nodata, p, llas, robust, out, lopt):
 
         z[:] = 0.0
 
-        for i in range(10):
+        for _ in range(10):
             for j in range(m):
                 y_tmp = y[j]
                 z_tmp = z[j]
