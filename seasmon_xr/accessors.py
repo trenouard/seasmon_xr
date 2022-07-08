@@ -383,7 +383,6 @@ class WhittakerSmoother(AccessorBase):
         Returns:
             ds_out: xarray.Dataset with smoothed data and sgrid
         """
-
         if p:
 
             if srange is None:

@@ -26,7 +26,6 @@ def ws2dwcvp(y, nodata, p, llas, robust, out, lopt):
         llas (numpy.array): 1d array of s values to use for optimization
         robust (boolean): performs a robust fitting by computing robust weights if True
     """
-
     m = y.shape[0]
     w = numpy.zeros(y.shape, dtype=float64)
 
@@ -162,7 +161,6 @@ def _ws2dwcvp(y, w, p, llas, robust):
         llas (numpy.array): 1d array of s values to use for optimization
         robust (boolean): performs a robust fitting by computing robust weights if True
     """
-
     m = y.shape[0]
     n = w.sum()
 
