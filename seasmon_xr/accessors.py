@@ -362,7 +362,7 @@ class WhittakerSmoother(AccessorBase):
         ds_out["sgrid"] = np.log10(sgrid).astype("float32")
 
         return ds_out
-    
+
     def whitswcv(
         self,
         nodata: Union[int, float],
@@ -383,12 +383,12 @@ class WhittakerSmoother(AccessorBase):
         Returns:
             ds_out: xarray.Dataset with smoothed data and sgrid
         """
-        
+
         if p:
-            
+
             if srange is None:
-                srange = np.arange(-1.8,4.2,0.2, dtype=np.float64)
-                
+                srange = np.arange(-1.8, 4.2, 0.2, dtype=np.float64)
+
             ds_out, sgrid = xarray.apply_ufunc(
                 ops.ws2dwcvp,
                 self._obj,
@@ -404,7 +404,7 @@ class WhittakerSmoother(AccessorBase):
 
         else:
             if srange is None:
-                srange = np.arange(-1.8,4.2,0.2)
+                srange = np.arange(-1.8, 4.2, 0.2)
 
             ds_out, sgrid = xarray.apply_ufunc(
                 ops.ws2dwcv,
