@@ -297,7 +297,6 @@ class WhittakerSmoother(AccessorBase):
         Apply whittaker with V-curve optimization of S.
 
         Args:
-            dim: dimension to use for filtering
             nodata: nodata value
             lc: lag1 autocorrelation DataArray,
             srange: values of S for V-curve optimization (mandatory if no autocorrelation raster)
@@ -374,7 +373,6 @@ class WhittakerSmoother(AccessorBase):
         Apply whittaker with GCV optimization of S.
 
         Args:
-            dim: dimension to use for filtering
             nodata: nodata value
             srange: values of S for GCV optimization
             p: Envelope value for asymmetric weights
