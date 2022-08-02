@@ -40,7 +40,7 @@ def ws2dwcv(y, nodata, llas, robust, out, lopt):
     d_eigs = -2 + 2 * numpy.cos(numpy.arange(m) * numpy.pi / m)
     d_eigs[0] = 1e-15
 
-    if n > 1:
+    if n > 5:
 
         z = numpy.zeros(m)
         r_weights = numpy.ones(m)
@@ -51,51 +51,51 @@ def ws2dwcv(y, nodata, llas, robust, out, lopt):
         else:
             r_its = 4
 
-        # Initialising lists for writing to
+        # Initialising list for writing to
         robust_gcv = []
 
         gcv_temp = [1e15, 0]
         for it in range(r_its):
             if it > 1:
-                Sopt_Rog_val = robust_gcv[1][1]
+                s_opt_val = robust_gcv[1][1]
             else:
-                Sopt_Rog_val = 0.0
+                s_opt_val = 0.0
 
-            if not Sopt_Rog_val:
+            if not s_opt_val:
                 smoothing = 10**llas
             else:
-                smoothing = numpy.array([Sopt_Rog_val])
+                smoothing = numpy.array([s_opt_val])
 
             w_temp = w * r_weights
-            for lmda in smoothing:
+            for s in smoothing:
 
-                NDVI_smoothed = ws2d(y, lmda, w_temp)
+                y_smoothed = ws2d(y, s, w_temp)
 
-                gamma = w_temp / (w_temp + lmda * ((-1 * d_eigs) ** 2))
+                gamma = w_temp / (w_temp + s * ((-1 * d_eigs) ** 2))
                 tr_H = gamma.sum()
-                wsse = (((w_temp**0.5) * (y - NDVI_smoothed)) ** 2).sum()
+                wsse = (((w_temp**0.5) * (y - y_smoothed)) ** 2).sum()
                 denominator = w_temp.sum() * (1 - (tr_H / (w_temp.sum()))) ** 2
                 gcv_score = wsse / denominator
 
-                gcv, NDVIhat = ([gcv_score, lmda], NDVI_smoothed)
+                gcv = [gcv_score, s]
 
                 if gcv[0] < gcv_temp[0]:
                     gcv_temp = gcv
-                    tempNDVI_arr = NDVIhat
+                    y_temp = y_smoothed
 
             best_gcv = gcv_temp
             s = best_gcv[1]
 
             if robust:
                 gamma = w_temp / (w_temp + s * ((-1 * d_eigs) ** 2))
-                r_arr = y - tempNDVI_arr
+                r_arr = y - y_temp
 
-                MAD = numpy.median(
+                mad = numpy.median(
                     numpy.abs(
                         r_arr[r_weights != 0] - numpy.median(r_arr[r_weights != 0])
                     )
                 )
-                u_arr = r_arr / (1.4826 * MAD * numpy.sqrt(1 - gamma.sum() / n))
+                u_arr = r_arr / (1.4826 * mad * numpy.sqrt(1 - gamma.sum() / n))
 
                 r_weights = (1 - (u_arr / 4.685) ** 2) ** 2
                 r_weights[(numpy.abs(u_arr / 4.685) > 1)] = 0
