@@ -517,7 +517,7 @@ class PixelAlgorithms(AccessorBase):
             ops.autocorr,
             xx,
             nodata,
-            input_core_dims=[["time"]],
+            input_core_dims=[["time"], []],
             dask="parallelized",
             output_dtypes=["float32"],
         )
