@@ -4,6 +4,6 @@ git+https://github.com/numba/numba-scipy
 scipy==1.7.3
 numba==0.55.2
 numpy==1.22.4
+xarray==0.21.1
 
-xarray
 dask[array]
