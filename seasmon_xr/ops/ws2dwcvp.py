@@ -220,9 +220,7 @@ def _ws2dwcvp(y, w, p, llas, robust):
             r_arr = y - y_temp
 
             mad = numpy.median(
-                numpy.abs(
-                    r_arr[r_weights != 0] - numpy.median(r_arr[r_weights != 0])
-                )
+                numpy.abs(r_arr[r_weights != 0] - numpy.median(r_arr[r_weights != 0]))
             )
             u_arr = r_arr / (1.4826 * mad * numpy.sqrt(1 - gamma.sum() / n))
 
