@@ -88,7 +88,7 @@ jobs:
 
       - name: build wheels unpatched
         run: |
-          mkdir wheels
+          mkdir -p wheels
           pip wheel \
             --verbose \
             --no-input \
