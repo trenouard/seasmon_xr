@@ -1,7 +1,7 @@
 """Whittaker filter V-curve optimization os S."""
 from math import log, sqrt
 
-import numpy
+import numpy as np
 from numba import guvectorize
 from numba.core.types import float64, int16
 
@@ -21,12 +21,12 @@ def ws2doptv(y, nodata, llas, out, lopt):
     Whittaker filter V-curve optimization of S.
 
     Args:
-        y (numpy.array): raw data array (1d, expected in float64)
+        y (np.array): raw data array (1d, expected in float64)
         nodata (double, int): nodata value
-        llas (numpy.array): 1d array of s values to use for optimization
+        llas (np.array): 1d array of s values to use for optimization
     """
     m = y.shape[0]
-    w = numpy.zeros(y.shape)
+    w = np.zeros(y.shape)
     n = 0
     for ii in range(m):
         if y[ii] == nodata:
@@ -42,12 +42,12 @@ def ws2doptv(y, nodata, llas, out, lopt):
         i = 0
         k = 0
 
-        fits = numpy.zeros(nl)
-        pens = numpy.zeros(nl)
-        z = numpy.zeros(m)
-        diff1 = numpy.zeros(m1)
-        lamids = numpy.zeros(nl1)
-        v = numpy.zeros(nl1)
+        fits = np.zeros(nl)
+        pens = np.zeros(nl)
+        z = np.zeros(m)
+        diff1 = np.zeros(m1)
+        lamids = np.zeros(nl1)
+        v = np.zeros(nl1)
 
         # Compute v-curve
         for lix in range(nl):
@@ -91,7 +91,7 @@ def ws2doptv(y, nodata, llas, out, lopt):
 
         lopt[0] = pow(10, lamids[k])
         z = ws2d(y, lopt[0], w)
-        numpy.round_(z, 0, out)
+        np.round_(z, 0, out)
     else:
         out[:] = y[:]
         lopt[0] = 0.0

@@ -1,5 +1,5 @@
 """Whittaker smoother with asymmetric smoothing and fixed lambda (S)."""
-import numpy
+import numpy as np
 from numba import guvectorize
 from numba.core.types import float64, int16
 
@@ -28,7 +28,7 @@ def ws2dpgu(y, lmda, nodata, p, out):
     """
     if lmda != 0.0:
 
-        w = numpy.zeros(y.shape, dtype=float64)  # type: ignore
+        w = np.zeros(y.shape, dtype=float64)  # type: ignore
         m = y.shape[0]
         n = 0
 
@@ -41,10 +41,10 @@ def ws2dpgu(y, lmda, nodata, p, out):
 
         if n > 1:
             p1 = 1 - p
-            z = numpy.zeros(m)
-            znew = numpy.zeros(m)
-            wa = numpy.zeros(m)
-            ww = numpy.zeros(m)
+            z = np.zeros(m)
+            znew = np.zeros(m)
+            wa = np.zeros(m)
+            ww = np.zeros(m)
 
             # Calculate weights
 
@@ -71,7 +71,7 @@ def ws2dpgu(y, lmda, nodata, p, out):
                 z[:] = znew[:]
 
             z = ws2d(y, lmda, ww)
-            numpy.round_(z, 0, out)
+            np.round_(z, 0, out)
 
         else:
             out[:] = y[:]

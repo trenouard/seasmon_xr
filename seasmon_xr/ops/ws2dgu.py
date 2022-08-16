@@ -1,5 +1,5 @@
 """Whittaker smoother with fixed lambda (S)."""
-import numpy
+import numpy as np
 from numba import guvectorize
 from numba.core.types import float64, int16
 
@@ -27,7 +27,7 @@ def ws2dgu(y, lmda, nodata, out):
     if lmda != 0.0:
 
         m = y.shape[0]
-        w = numpy.zeros(y.shape, dtype=float64)  # type: ignore
+        w = np.zeros(y.shape, dtype=float64)  # type: ignore
 
         n = 0
         for ii in range(m):
@@ -39,7 +39,7 @@ def ws2dgu(y, lmda, nodata, out):
 
         if n > 1:
             z = ws2d(y, lmda, w)
-            numpy.round_(z, 0, out)
+            np.round_(z, 0, out)
         else:
             out[:] = y[:]
     else:

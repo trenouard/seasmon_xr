@@ -1,5 +1,5 @@
 """Calculate the longest run of ones inside a 1d array."""
-import numpy
+import numpy as np
 from numba import guvectorize
 
 from ._helper import lazycompile
@@ -14,7 +14,7 @@ def lroo(data, out):
     """
     cr = 1
     mr = 0
-    dots = numpy.where(data.flatten() == 1)[0]
+    dots = np.where(data.flatten() == 1)[0]
 
     for ix in range(1, dots.size):
 

@@ -2,7 +2,7 @@
 # pyright: reportGeneralTypeIssues=false
 from math import log, sqrt
 
-import numpy
+import numpy as np
 from numba import guvectorize, jit
 from numba.core.types import float64, int16
 
@@ -22,13 +22,13 @@ def ws2doptvp(y, nodata, p, llas, out, lopt):
     Whittaker filter V-curve optimization of S and asymmetric weights.
 
     Args:
-        y (numpy.array): raw data array (1d, expected in float64)
+        y (np.array): raw data array (1d, expected in float64)
         nodata (double, int): nodata value
         p (float): Envelope value for asymmetric weights
-        llas (numpy.array): 1d array of s values to use for optimization
+        llas (np.array): 1d array of s values to use for optimization
     """
     m = y.shape[0]
-    w = numpy.zeros(y.shape, dtype=float64)
+    w = np.zeros(y.shape, dtype=float64)
 
     n = 0
     for ii in range(m):
@@ -47,15 +47,15 @@ def ws2doptvp(y, nodata, p, llas, out, lopt):
         j = 0
         p1 = 1 - p
 
-        fits = numpy.zeros(nl)
-        pens = numpy.zeros(nl)
-        z = numpy.zeros(m)
-        znew = numpy.zeros(m)
-        diff1 = numpy.zeros(m1)
-        lamids = numpy.zeros(nl1)
-        v = numpy.zeros(nl1)
-        wa = numpy.zeros(m)
-        ww = numpy.zeros(m)
+        fits = np.zeros(nl)
+        pens = np.zeros(nl)
+        z = np.zeros(m)
+        znew = np.zeros(m)
+        diff1 = np.zeros(m1)
+        lamids = np.zeros(nl1)
+        v = np.zeros(nl1)
+        wa = np.zeros(m)
+        ww = np.zeros(m)
 
         # Compute v-curve
         for lix in range(nl):
@@ -145,7 +145,7 @@ def ws2doptvp(y, nodata, p, llas, out, lopt):
             z[0:m] = znew[0:m]
 
         z = ws2d(y, lopt[0], ww)
-        numpy.round_(z, 0, out)
+        np.round_(z, 0, out)
 
     else:
         out[:] = y[:]
@@ -158,10 +158,10 @@ def _ws2doptvp(y, w, p, llas):
     Whittaker filter V-curve optimization of S and asymmetric weights.
 
     Args:
-        y (numpy.array): raw data array (1d, expected in float64)
-        w (numpy.array): weights same size as y
+        y (np.array): raw data array (1d, expected in float64)
+        w (np.array): weights same size as y
         p (float): Envelope value for asymmetric weights
-        llas (numpy.array): 1d array of s values to use for optimization
+        llas (np.array): 1d array of s values to use for optimization
     """
     m = y.shape[0]
 
@@ -174,15 +174,15 @@ def _ws2doptvp(y, w, p, llas):
     j = 0
     p1 = 1 - p
 
-    fits = numpy.zeros(nl, dtype=float64)
-    pens = numpy.zeros(nl, dtype=float64)
-    z = numpy.zeros(m, dtype=float64)
-    znew = numpy.zeros(m, dtype=float64)
-    diff1 = numpy.zeros(m1, dtype=float64)
-    lamids = numpy.zeros(nl1, dtype=float64)
-    v = numpy.zeros(nl1, dtype=float64)
-    wa = numpy.zeros(m, dtype=float64)
-    ww = numpy.zeros(m, dtype=float64)
+    fits = np.zeros(nl, dtype=float64)
+    pens = np.zeros(nl, dtype=float64)
+    z = np.zeros(m, dtype=float64)
+    znew = np.zeros(m, dtype=float64)
+    diff1 = np.zeros(m1, dtype=float64)
+    lamids = np.zeros(nl1, dtype=float64)
+    v = np.zeros(nl1, dtype=float64)
+    wa = np.zeros(m, dtype=float64)
+    ww = np.zeros(m, dtype=float64)
 
     # Compute v-curve
     for lix in range(nl):

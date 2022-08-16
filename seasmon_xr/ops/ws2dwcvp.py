@@ -1,6 +1,6 @@
 """Whittaker filter V-curve optimization of S and asymmetric weights."""
 # pyright: reportGeneralTypeIssues=false
-import numpy
+import numpy as np
 from numba import guvectorize, jit
 from numba.core.types import float64, int16, boolean
 
@@ -20,34 +20,34 @@ def ws2dwcvp(y, nodata, p, llas, robust, out, lopt):
     Whittaker filter GCV optimization of S and asymmetric weights.
 
     Args:
-        y (numpy.array): raw data array (1d, expected in float64)
+        y (np.array): raw data array (1d, expected in float64)
         nodata (double, int): nodata value
         p (float): Envelope value for asymmetric weights
-        llas (numpy.array): 1d array of s values to use for optimization
+        llas (np.array): 1d array of s values to use for optimization
         robust (boolean): performs a robust fitting by computing robust weights if True
     """
     m = y.shape[0]
-    w = numpy.zeros(y.shape, dtype=float64)
+    w = np.zeros(y.shape, dtype=float64)
 
     n = 0
     for ii in range(m):
-        if (y[ii] == nodata) or numpy.isnan(y[ii]) or numpy.isinf(y[ii]):
+        if (y[ii] == nodata) or np.isnan(y[ii]) or np.isinf(y[ii]):
             w[ii] = 0
         else:
             n += 1
             w[ii] = 1
 
     # Eigenvalues
-    d_eigs = -2 + 2 * numpy.cos(numpy.arange(m) * numpy.pi / m)
+    d_eigs = -2 + 2 * np.cos(np.arange(m) * np.pi / m)
     d_eigs[0] = 1e-15
 
     if n > 5:
 
-        z = numpy.zeros(m)
-        znew = numpy.zeros(m)
-        wa = numpy.zeros(m)
-        ww = numpy.zeros(m)
-        r_weights = numpy.ones(m)
+        z = np.zeros(m)
+        znew = np.zeros(m)
+        wa = np.zeros(m)
+        ww = np.zeros(m)
+        r_weights = np.ones(m)
 
         # Setting number of robust iterations to perform
         if not robust:
@@ -68,7 +68,7 @@ def ws2dwcvp(y, nodata, p, llas, robust, out, lopt):
             if not s_opt_val:
                 smoothing = 10**llas
             else:
-                smoothing = numpy.array([s_opt_val])
+                smoothing = np.array([s_opt_val])
 
             w_temp = w * r_weights
             for s in smoothing:
@@ -94,15 +94,15 @@ def ws2dwcvp(y, nodata, p, llas, robust, out, lopt):
                 gamma = w_temp / (w_temp + s * ((-1 * d_eigs) ** 2))
                 r_arr = y - y_temp
 
-                mad = numpy.median(
-                    numpy.abs(
-                        r_arr[r_weights != 0] - numpy.median(r_arr[r_weights != 0])
+                mad = np.median(
+                    np.abs(
+                        r_arr[r_weights != 0] - np.median(r_arr[r_weights != 0])
                     )
                 )
-                u_arr = r_arr / (1.4826 * mad * numpy.sqrt(1 - gamma.sum() / n))
+                u_arr = r_arr / (1.4826 * mad * np.sqrt(1 - gamma.sum() / n))
 
                 r_weights = (1 - (u_arr / 4.685) ** 2) ** 2
-                r_weights[(numpy.abs(u_arr / 4.685) > 1)] = 0
+                r_weights[(np.abs(u_arr / 4.685) > 1)] = 0
 
                 r_weights[r_arr > 0] = 1
 
@@ -110,7 +110,7 @@ def ws2dwcvp(y, nodata, p, llas, robust, out, lopt):
 
             robust_gcv.append(best_gcv)
 
-        robust_gcv = numpy.array(robust_gcv)
+        robust_gcv = np.array(robust_gcv)
 
         if robust:
             lopt[0] = robust_gcv[1, 1]
@@ -142,7 +142,7 @@ def ws2dwcvp(y, nodata, p, llas, robust, out, lopt):
             z[0:m] = znew[0:m]
 
         z = ws2d(y, lopt[0], ww)
-        numpy.round_(z, 0, out)
+        np.round_(z, 0, out)
 
     else:
         out[:] = y[:]
@@ -155,24 +155,24 @@ def _ws2dwcvp(y, w, p, llas, robust):
     Whittaker filter GCV optimization of S and asymmetric weights.
 
     Args:
-        y (numpy.array): raw data array (1d, expected in float64)
-        w (numpy.array): weights same size as y
+        y (np.array): raw data array (1d, expected in float64)
+        w (np.array): weights same size as y
         p (float): Envelope value for asymmetric weights
-        llas (numpy.array): 1d array of s values to use for optimization
+        llas (np.array): 1d array of s values to use for optimization
         robust (boolean): performs a robust fitting by computing robust weights if True
     """
     m = y.shape[0]
     n = w.sum()
 
     # Eigenvalues
-    d_eigs = -2 + 2 * numpy.cos(numpy.arange(m) * numpy.pi / m)
+    d_eigs = -2 + 2 * np.cos(np.arange(m) * np.pi / m)
     d_eigs[0] = 1e-15
 
-    z = numpy.zeros(m)
-    znew = numpy.zeros(m)
-    wa = numpy.zeros(m)
-    ww = numpy.zeros(m)
-    r_weights = numpy.ones(m)
+    z = np.zeros(m)
+    znew = np.zeros(m)
+    wa = np.zeros(m)
+    ww = np.zeros(m)
+    r_weights = np.ones(m)
 
     # Setting number of robust iterations to perform
     if not robust:
@@ -193,7 +193,7 @@ def _ws2dwcvp(y, w, p, llas, robust):
         if not s_opt_val:
             smoothing = 10**llas
         else:
-            smoothing = numpy.array([s_opt_val])
+            smoothing = np.array([s_opt_val])
 
         w_temp = w * r_weights
         for s in smoothing:
@@ -219,13 +219,13 @@ def _ws2dwcvp(y, w, p, llas, robust):
             gamma = w_temp / (w_temp + s * ((-1 * d_eigs) ** 2))
             r_arr = y - y_temp
 
-            mad = numpy.median(
-                numpy.abs(r_arr[r_weights != 0] - numpy.median(r_arr[r_weights != 0]))
+            mad = np.median(
+                np.abs(r_arr[r_weights != 0] - np.median(r_arr[r_weights != 0]))
             )
-            u_arr = r_arr / (1.4826 * mad * numpy.sqrt(1 - gamma.sum() / n))
+            u_arr = r_arr / (1.4826 * mad * np.sqrt(1 - gamma.sum() / n))
 
             r_weights = (1 - (u_arr / 4.685) ** 2) ** 2
-            r_weights[(numpy.abs(u_arr / 4.685) > 1)] = 0
+            r_weights[(np.abs(u_arr / 4.685) > 1)] = 0
 
             r_weights[r_arr > 0] = 1
 
@@ -233,7 +233,7 @@ def _ws2dwcvp(y, w, p, llas, robust):
 
         robust_gcv.append(best_gcv)
 
-    robust_gcv = numpy.array(robust_gcv)
+    robust_gcv = np.array(robust_gcv)
 
     if robust:
         lopt = robust_gcv[1, 1]
@@ -265,6 +265,6 @@ def _ws2dwcvp(y, w, p, llas, robust):
         z[0:m] = znew[0:m]
 
     z = ws2d(y, lopt, ww)
-    z = numpy.round_(z, 0)
+    z = np.round_(z, 0)
 
     return z, lopt

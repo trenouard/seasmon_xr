@@ -7,7 +7,7 @@ numba implementations.
 from math import log, sqrt
 
 import numba
-import numpy
+import numpy as np
 from numba import guvectorize
 from numba.core.types import float64, int16
 
@@ -29,13 +29,13 @@ def ws2doptvplc(y, nodata, p, lc, out, lopt):
     Whittaker filter V-curve optimization of S, asymmetric weights and srange from autocorrelation.
 
     Args:
-        y (numpy.array): raw data array (1d, expected in float64)
+        y (np.array): raw data array (1d, expected in float64)
         nodata (double, int): nodata value
         p (float): Envelope value for asymmetric weights
         lc (float): lag1 autocorrelation
     """
     m = y.shape[0]
-    w = numpy.zeros(y.shape, dtype=float64)
+    w = np.zeros(y.shape, dtype=float64)
 
     n = 0
     for ii in range(m):
@@ -47,11 +47,11 @@ def ws2doptvplc(y, nodata, p, lc, out, lopt):
 
     if n > 1:
         if lc > 0.5:
-            llas = numpy.arange(-2, 1.2, 0.2, dtype=float64)
+            llas = np.arange(-2, 1.2, 0.2, dtype=float64)
         elif lc <= 0.5:
-            llas = numpy.arange(0, 3.2, 0.2, dtype=float64)
+            llas = np.arange(0, 3.2, 0.2, dtype=float64)
         else:
-            llas = numpy.arange(-1, 1.2, 0.2, dtype=float64)
+            llas = np.arange(-1, 1.2, 0.2, dtype=float64)
 
         m1 = m - 1
         m2 = m - 2
@@ -62,15 +62,15 @@ def ws2doptvplc(y, nodata, p, lc, out, lopt):
         j = 0
         p1 = 1 - p
 
-        fits = numpy.zeros(nl)
-        pens = numpy.zeros(nl)
-        z = numpy.zeros(m)
-        znew = numpy.zeros(m)
-        diff1 = numpy.zeros(m1)
-        lamids = numpy.zeros(nl1)
-        v = numpy.zeros(nl1)
-        wa = numpy.zeros(m)
-        ww = numpy.zeros(m)
+        fits = np.zeros(nl)
+        pens = np.zeros(nl)
+        z = np.zeros(m)
+        znew = np.zeros(m)
+        diff1 = np.zeros(m1)
+        lamids = np.zeros(nl1)
+        v = np.zeros(nl1)
+        wa = np.zeros(m)
+        ww = np.zeros(m)
 
         # Compute v-curve
         for lix in range(nl):
@@ -160,7 +160,7 @@ def ws2doptvplc(y, nodata, p, lc, out, lopt):
             z[0:m] = znew[0:m]
 
         z = ws2d(y, lopt[0], ww)
-        numpy.round_(z, 0, out)
+        np.round_(z, 0, out)
 
     else:
         out[:] = y[:]
@@ -173,7 +173,7 @@ def ws2doptvplc_tyx(tyx, p, nodata):
     Whittaker filter V-curve optimization of S, asymmetric weights and srange from autocorrelation.
 
     Args:
-        tyx (numpy.array): raw data array (int16 usually, T,Y,X axis order)
+        tyx (np.array): raw data array (int16 usually, T,Y,X axis order)
         nodata (double, int): nodata value
         p (float): Envelope value for asymmetric weights
 
@@ -182,21 +182,21 @@ def ws2doptvplc_tyx(tyx, p, nodata):
        lopts optimization parameters (lopts.shape == zz.shape[1:])
     """
     nt, nr, nc = tyx.shape
-    zz = numpy.zeros((nt, nr, nc), dtype=tyx.dtype)
-    lopts = numpy.zeros((nr, nc), dtype="float64")
+    zz = np.zeros((nt, nr, nc), dtype=tyx.dtype)
+    lopts = np.zeros((nr, nc), dtype="float64")
 
     _llas = (
-        numpy.arange(-2, 1.2, 0.2, dtype=float64),  # lc > 0.5
-        numpy.arange(0, 3.2, 0.2, dtype=float64),
+        np.arange(-2, 1.2, 0.2, dtype=float64),  # lc > 0.5
+        np.arange(0, 3.2, 0.2, dtype=float64),
     )  # lc <= 0.5
 
     p = float64(p)
 
     for rr in numba.prange(nr):  # pylint: disable=not-an-iterable
         # needs to be here so that each thread gets it's own version
-        xx_raw = numpy.zeros(nt, dtype=tyx.dtype)
-        xx = numpy.zeros(nt, dtype=float64)
-        ww = numpy.zeros(nt, dtype=float64)
+        xx_raw = np.zeros(nt, dtype=tyx.dtype)
+        xx = np.zeros(nt, dtype=float64)
+        ww = np.zeros(nt, dtype=float64)
 
         for cc in range(nc):
             # Copy values into local array first without any change
@@ -225,7 +225,7 @@ def ws2doptvplc_tyx(tyx, p, nodata):
 
                 llas = _llas[0] if lc > 0.5 else _llas[1]
                 _xx, _lopts = _ws2doptvp(xx, ww, p, llas)
-                numpy.round_(_xx, 0, zz[:, rr, cc])
+                np.round_(_xx, 0, zz[:, rr, cc])
                 lopts[rr, cc] = _lopts
 
     return zz, lopts
