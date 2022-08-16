@@ -26,15 +26,12 @@ def ws2dwcv(y, nodata, llas, robust, out, lopt):
         robust (boolean): performs a robust fitting by computing robust weights if True
     """
     m = y.shape[0]
-    w = np.zeros(y.shape, dtype=float64)
 
-    n = 0
-    for ii in range(m):
-        if (y[ii] == nodata) or np.isnan(y[ii]) or np.isinf(y[ii]):
-            w[ii] = 0
-        else:
-            n += 1
-            w[ii] = 1
+    # Compute weights for nodata values
+    w = 1 - np.array(
+        [((x == nodata) or np.isnan(x) or np.isinf(x)) for x in y], dtype=float64
+    )
+    n = np.sum(w)
 
     # Eigenvalues
     d_eigs = -2 + 2 * np.cos(np.arange(m) * np.pi / m)
@@ -91,9 +88,7 @@ def ws2dwcv(y, nodata, llas, robust, out, lopt):
                 r_arr = y - y_temp
 
                 mad = np.median(
-                    np.abs(
-                        r_arr[r_weights != 0] - np.median(r_arr[r_weights != 0])
-                    )
+                    np.abs(r_arr[r_weights != 0] - np.median(r_arr[r_weights != 0]))
                 )
                 u_arr = r_arr / (1.4826 * mad * np.sqrt(1 - gamma.sum() / n))
 

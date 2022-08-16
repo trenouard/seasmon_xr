@@ -28,43 +28,30 @@ def ws2dpgu(y, lmda, nodata, p, out):
     """
     if lmda != 0.0:
 
-        w = np.zeros(y.shape, dtype=float64)  # type: ignore
         m = y.shape[0]
-        n = 0
 
-        for ii in range(m):
-            if y[ii] == nodata:
-                w[ii] = 0
-            else:
-                n += 1
-                w[ii] = 1
+        # Compute weights for nodata values
+        w = 1 - np.array(
+            [((x == nodata) or np.isnan(x) or np.isinf(x)) for x in y], dtype=float64
+        )
+        n = np.sum(w)
 
         if n > 1:
             p1 = 1 - p
             z = np.zeros(m)
             znew = np.zeros(m)
             wa = np.zeros(m)
-            ww = np.zeros(m)
 
             # Calculate weights
-
             for _ in range(10):
-                for j in range(m):
-                    y_tmp = y[j]
-                    z_tmp = z[j]
-
-                    if y_tmp > z_tmp:
-                        wa[j] = p
-                    else:
-                        wa[j] = p1
-                    ww[j] = w[j] * wa[j]
+                envelope = y > z
+                wa[envelope] = p
+                wa[~envelope] = p1
+                ww = w * wa
 
                 znew[:] = ws2d(y, lmda, ww)
-                z_tmp = 0.0
-                j = 0
-                for j in range(m):
-                    z_tmp += abs(znew[j] - z[j])
 
+                z_tmp = np.sum(np.abs(znew - z))
                 if z_tmp == 0.0:
                     break
 

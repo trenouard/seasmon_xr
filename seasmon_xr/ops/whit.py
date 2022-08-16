@@ -110,51 +110,42 @@ def ws2dpgu(y, lmda, nodata, p, out):
     Returns:
         Smoothed time-series array z
     """
-    w = np.zeros(y.shape, dtype=float64)
-    m = y.shape[0]
-    n = 0
+    if lmda != 0.0:
 
-    for ii in range(m):
-        if y[ii] == nodata:
-            w[ii] = 0
+        m = y.shape[0]
+
+        # Compute weights for nodata values
+        w = 1 - np.array(
+            [((x == nodata) or np.isnan(x) or np.isinf(x)) for x in y], dtype=float64
+        )
+        n = np.sum(w)
+
+        if n > 1:
+            p1 = 1 - p
+            z = np.zeros(m)
+            znew = np.zeros(m)
+            wa = np.zeros(m)
+
+            # Calculate weights
+            for _ in range(10):
+                envelope = y > z
+                wa[envelope] = p
+                wa[~envelope] = p1
+                ww = w * wa
+
+                znew[:] = ws2d(y, lmda, ww)
+
+                z_tmp = np.sum(np.abs(znew - z))
+                if z_tmp == 0.0:
+                    break
+
+                z[:] = znew[:]
+
+            z = ws2d(y, lmda, ww)
+            np.round_(z, 0, out)
+
         else:
-            n += 1
-            w[ii] = 1
-
-    if n > 1:
-        p1 = 1 - p
-        z = np.zeros(m)
-        znew = np.zeros(m)
-        wa = np.zeros(m)
-        ww = np.zeros(m)
-
-        # Calculate weights
-
-        for _ in range(10):
-            for j in range(m):
-                y_tmp = y[j]
-                z_tmp = z[j]
-
-                if y_tmp > z_tmp:
-                    wa[j] = p
-                else:
-                    wa[j] = p1
-                ww[j] = w[j] * wa[j]
-
-            znew[:] = ws2d(y, lmda, ww)
-            z_tmp = 0.0
-            j = 0
-            for j in range(m):
-                z_tmp += abs(znew[j] - z[j])
-
-            if z_tmp == 0.0:
-                break
-
-            z[:] = znew[:]
-
-        z = ws2d(y, lmda, ww)
-        np.round_(z, 0, out)
-
+            out[:] = y[:]
     else:
         out[:] = y[:]
 
@@ -552,15 +543,12 @@ def ws2dwcv(y, nodata, llas, robust, out, lopt):
         robust (boolean): performs a robust fitting by computing robust weights if True
     """
     m = y.shape[0]
-    w = np.zeros(y.shape, dtype=float64)
 
-    n = 0
-    for ii in range(m):
-        if (y[ii] == nodata) or np.isnan(y[ii]) or np.isinf(y[ii]):
-            w[ii] = 0
-        else:
-            n += 1
-            w[ii] = 1
+    # Compute weights for nodata values
+    w = 1 - np.array(
+        [((x == nodata) or np.isnan(x) or np.isinf(x)) for x in y], dtype=float64
+    )
+    n = np.sum(w)
 
     # Eigenvalues
     d_eigs = -2 + 2 * np.cos(np.arange(m) * np.pi / m)
@@ -617,9 +605,7 @@ def ws2dwcv(y, nodata, llas, robust, out, lopt):
                 r_arr = y - y_temp
 
                 mad = np.median(
-                    np.abs(
-                        r_arr[r_weights != 0] - np.median(r_arr[r_weights != 0])
-                    )
+                    np.abs(r_arr[r_weights != 0] - np.median(r_arr[r_weights != 0]))
                 )
                 u_arr = r_arr / (1.4826 * mad * np.sqrt(1 - gamma.sum() / n))
 
@@ -665,15 +651,12 @@ def ws2dwcvp(y, nodata, p, llas, robust, out, lopt):
         robust (boolean): performs a robust fitting by computing robust weights if True
     """
     m = y.shape[0]
-    w = np.zeros(y.shape, dtype=float64)
 
-    n = 0
-    for ii in range(m):
-        if (y[ii] == nodata) or np.isnan(y[ii]) or np.isinf(y[ii]):
-            w[ii] = 0
-        else:
-            n += 1
-            w[ii] = 1
+    # Compute weights for nodata values
+    w = 1 - np.array(
+        [((x == nodata) or np.isnan(x) or np.isinf(x)) for x in y], dtype=float64
+    )
+    n = np.sum(w)
 
     # Eigenvalues
     d_eigs = -2 + 2 * np.cos(np.arange(m) * np.pi / m)
@@ -684,7 +667,6 @@ def ws2dwcvp(y, nodata, p, llas, robust, out, lopt):
         z = np.zeros(m)
         znew = np.zeros(m)
         wa = np.zeros(m)
-        ww = np.zeros(m)
         r_weights = np.ones(m)
 
         # Setting number of robust iterations to perform
@@ -733,9 +715,7 @@ def ws2dwcvp(y, nodata, p, llas, robust, out, lopt):
                 r_arr = y - y_temp
 
                 mad = np.median(
-                    np.abs(
-                        r_arr[r_weights != 0] - np.median(r_arr[r_weights != 0])
-                    )
+                    np.abs(r_arr[r_weights != 0] - np.median(r_arr[r_weights != 0]))
                 )
                 u_arr = r_arr / (1.4826 * mad * np.sqrt(1 - gamma.sum() / n))
 
@@ -758,22 +738,15 @@ def ws2dwcvp(y, nodata, p, llas, robust, out, lopt):
         z[:] = 0.0
 
         for _ in range(10):
-            for j in range(m):
-                y_tmp = y[j]
-                z_tmp = z[j]
 
-                if y_tmp > z_tmp:
-                    wa[j] = p
-                else:
-                    wa[j] = 1 - p
-                ww[j] = robust_weights[j] * wa[j]
+            envelope = y > z
+            wa[envelope] = p
+            wa[~envelope] = 1 - p
+            ww = robust_weights * wa
 
             znew[0:m] = ws2d(y, lopt[0], ww)
-            z_tmp = 0.0
-            j = 0
-            for j in range(m):
-                z_tmp += abs(znew[j] - z[j])
 
+            z_tmp = np.sum(np.abs(znew - z))
             if z_tmp == 0.0:
                 break
 
