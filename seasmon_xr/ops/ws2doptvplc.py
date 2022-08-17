@@ -26,14 +26,17 @@ from .ws2doptvp import _ws2doptvp
 )
 def ws2doptvplc(y, nodata, p, lc, out, lopt):
     """
-    Whittaker filter V-curve optimization of the smoothing coefficient, asymmetric weights and
-    range of smoothing coefficients from autocorrelation.
-    (Eilers, Pesendorfer and Bonifacio, Automatic smoothing of remote sensing data:
-     https://doi.org/10.1016/j.csda.2009.09.020)
+    Whittaker filter V-curve optimization of S, asymmetric weights and srange from autocorrelation.
 
     The Whittaker Smoother is a penalized least square algorithm for smoothing and interpolation
     of noisy data. The smoothing coefficient optimization allows to automate the right amount of
-    penalty. (Eilers, A perfect smoother, https://doi.org/10.1021/ac034173t)
+    penalty.
+    References:
+    - Eilers, A perfect smoother, https://doi.org/10.1021/ac034173t
+    - Eilers, Pesendorfer and Bonifacio, Automatic smoothing of remote sensing data,
+      https://doi.org/10.1016/j.csda.2009.09.020)
+    - Garcia, Robust smoothing of gridded data in one and higher dimensions with missing values,
+      https://doi.org/10.1016/j.csda.2009.09.020
 
     Args:
         y (np.array): raw data array (1d, expected in float64)
@@ -177,14 +180,17 @@ def ws2doptvplc(y, nodata, p, lc, out, lopt):
 @lazycompile(numba.jit(nopython=True, parallel=True, nogil=True))
 def ws2doptvplc_tyx(tyx, p, nodata):
     """
-    Whittaker filter V-curve optimization of the smoothing coefficient, asymmetric weights and
-    range of smoothing coefficients from autocorrelation.
-    (Eilers, Pesendorfer and Bonifacio, Automatic smoothing of remote sensing data:
-     https://doi.org/10.1016/j.csda.2009.09.020)
+    Whittaker filter V-curve optimization of S, asymmetric weights and srange from autocorrelation.
 
     The Whittaker Smoother is a penalized least square algorithm for smoothing and interpolation
     of noisy data. The smoothing coefficient optimization allows to automate the right amount of
-    penalty. (Eilers, A perfect smoother, https://doi.org/10.1021/ac034173t)
+    penalty.
+    References:
+    - Eilers, A perfect smoother, https://doi.org/10.1021/ac034173t
+    - Eilers, Pesendorfer and Bonifacio, Automatic smoothing of remote sensing data,
+      https://doi.org/10.1016/j.csda.2009.09.020)
+    - Garcia, Robust smoothing of gridded data in one and higher dimensions with missing values,
+      https://doi.org/10.1016/j.csda.2009.09.020
 
 
     Args:
