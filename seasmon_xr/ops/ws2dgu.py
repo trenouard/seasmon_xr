@@ -14,7 +14,11 @@ from .ws2d import ws2d
 )
 def ws2dgu(y, lmda, nodata, out):
     """
-    Whittaker smoother with fixed lambda (S).
+    Whittaker smoother with fixed smoothing coefficient.
+
+    The Whittaker Smoother is a penalized least square algorithm for smoothing and interpolation of
+    noisy data. The smoothing coefficient optimization allows to automate the right amount of penalty.
+    (Eilers, A perfect smoother, doi:10.1021/ac034173t)
 
     Args:
         y: time-series numpy array

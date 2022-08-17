@@ -371,7 +371,7 @@ class WhittakerSmoother(AccessorBase):
         robust: bool = True,
     ) -> xarray.Dataset:
         """
-        Apply whittaker with GCV optimization of S.
+        Apply whittaker with Generalized Cross Validation optimization of S.
 
         Args:
             self: input dataset

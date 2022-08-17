@@ -17,14 +17,21 @@ from .ws2d import ws2d
 )
 def ws2dwcvp(y, nodata, p, llas, robust, out, lopt):
     """
-    Whittaker filter GCV optimization of S and asymmetric weights.
+    Whittaker filter Generalized Cross Validation optimization of the smoothing coefficient and
+    asymmetric weights.
+    (Garcia, Robust smoothing of gridded data in one and higher dimensions with missing values, https://doi.org/10.1016/j.csda.2009.09.020 ;
+     Eilers, Pesendorfer and Bonifacio, Automatic smoothing of remote sensing data, https://doi.org/10.1016/j.csda.2009.09.020)
+
+    The Whittaker Smoother is a penalized least square algorithm for smoothing and interpolation of
+    noisy data. The smoothing coefficient optimization allows to automate the right amount of penalty.
+    (Eilers, A perfect smoother, doi:10.1021/ac034173t)
 
     Args:
-        y (np.array): raw data array (1d, expected in float64)
-        nodata (double, int): nodata value
-        p (float): Envelope value for asymmetric weights
-        llas (np.array): 1d array of s values to use for optimization
-        robust (boolean): performs a robust fitting by computing robust weights if True
+        * y (np.array): raw data array (1d, expected in float64)
+        * nodata (double, int): nodata value
+        * p (float): Envelope value for asymmetric weights
+        * llas (np.array): 1d array of s values to use for optimization
+        * robust (boolean): performs a robust fitting by computing robust weights if True
     """
     m = y.shape[0]
 
@@ -139,7 +146,14 @@ def ws2dwcvp(y, nodata, p, llas, robust, out, lopt):
 @jit(nopython=True)
 def _ws2dwcvp(y, w, p, llas, robust):
     """
-    Whittaker filter GCV optimization of S and asymmetric weights.
+    Whittaker filter Generalized Cross Validation optimization of the smoothing coefficient and
+    asymmetric weights.
+    (Garcia, Robust smoothing of gridded data in one and higher dimensions with missing values, https://doi.org/10.1016/j.csda.2009.09.020 ;
+     Eilers, Pesendorfer and Bonifacio, Automatic smoothing of remote sensing data, https://doi.org/10.1016/j.csda.2009.09.020)
+
+    The Whittaker Smoother is a penalized least square algorithm for smoothing and interpolation of
+    noisy data. The smoothing coefficient optimization allows to automate the right amount of penalty.
+    (Eilers, A perfect smoother, doi:10.1021/ac034173t)
 
     Args:
         y (np.array): raw data array (1d, expected in float64)
