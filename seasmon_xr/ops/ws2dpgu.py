@@ -17,11 +17,12 @@ from .ws2d import ws2d
 def ws2dpgu(y, lmda, nodata, p, out):
     """
     Whittaker smoother with asymmetric smoothing and fixed smoothing coefficient.
-    (Eilers, Pesendorfer and Bonifacio, Automatic smoothing of remote sensing data, https://doi.org/10.1016/j.csda.2009.09.020)
+    (Eilers, Pesendorfer and Bonifacio, Automatic smoothing of remote sensing data:
+     https://doi.org/10.1016/j.csda.2009.09.020)
 
-    The Whittaker Smoother is a penalized least square algorithm for smoothing and interpolation of
-    noisy data. The smoothing coefficient optimization allows to automate the right amount of penalty.
-    (Eilers, A perfect smoother, doi:10.1021/ac034173t)
+    The Whittaker Smoother is a penalized least square algorithm for smoothing and interpolation
+    of noisy data. The smoothing coefficient optimization allows to automate the right amount of
+    penalty. (Eilers, A perfect smoother, https://doi.org/10.1021/ac034173t)
 
     Args:
         y: time-series numpy array

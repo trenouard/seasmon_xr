@@ -8,9 +8,9 @@ def ws2d(y, lmda, w):
     """
     Whittaker filter with differences of 2nd order.
 
-    The Whittaker Smoother is a penalized least square algorithm for smoothing and interpolation of
-    noisy data. The smoothing coefficient optimization allows to automate the right amount of penalty.
-    (Eilers, A perfect smoother, doi:10.1021/ac034173t)
+    The Whittaker Smoother is a penalized least square algorithm for smoothing and interpolation
+    of noisy data. The smoothing coefficient optimization allows to automate the right amount of
+    penalty. (Eilers, A perfect smoother, https://doi.org/10.1021/ac034173t)
 
     Args:
         y (numpy.array): raw data array (1d, expected in float64)

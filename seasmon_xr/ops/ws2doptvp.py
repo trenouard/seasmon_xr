@@ -20,11 +20,12 @@ from .ws2d import ws2d
 def ws2doptvp(y, nodata, p, llas, out, lopt):
     """
     Whittaker filter V-curve optimization of the smoothing coefficient and asymmetric weights.
-    (Eilers, Pesendorfer and Bonifacio, Automatic smoothing of remote sensing data, https://doi.org/10.1016/j.csda.2009.09.020)
+    (Eilers, Pesendorfer and Bonifacio, Automatic smoothing of remote sensing data:
+     https://doi.org/10.1016/j.csda.2009.09.020)
 
-    The Whittaker Smoother is a penalized least square algorithm for smoothing and interpolation of
-    noisy data. The smoothing coefficient optimization allows to automate the right amount of penalty.
-    (Eilers, A perfect smoother, doi:10.1021/ac034173t)
+    The Whittaker Smoother is a penalized least square algorithm for smoothing and interpolation
+    of noisy data. The smoothing coefficient optimization allows to automate the right amount of
+    penalty. (Eilers, A perfect smoother, https://doi.org/10.1021/ac034173t)
 
     Args:
         y (np.array): raw data array (1d, expected in float64)
@@ -161,11 +162,12 @@ def ws2doptvp(y, nodata, p, llas, out, lopt):
 def _ws2doptvp(y, w, p, llas):
     """
     Whittaker filter V-curve optimization of the smoothing coefficient and asymmetric weights.
-    (Eilers, Pesendorfer and Bonifacio, Automatic smoothing of remote sensing data, https://doi.org/10.1016/j.csda.2009.09.020)
+    (Eilers, Pesendorfer and Bonifacio, Automatic smoothing of remote sensing data:
+     https://doi.org/10.1016/j.csda.2009.09.020)
 
-    The Whittaker Smoother is a penalized least square algorithm for smoothing and interpolation of
-    noisy data. The smoothing coefficient optimization allows to automate the right amount of penalty.
-    (Eilers, A perfect smoother, doi:10.1021/ac034173t)
+    The Whittaker Smoother is a penalized least square algorithm for smoothing and interpolation
+    of noisy data. The smoothing coefficient optimization allows to automate the right amount of
+    penalty. (Eilers, A perfect smoother, https://doi.org/10.1021/ac034173t)
 
     Args:
         y (np.array): raw data array (1d, expected in float64)
