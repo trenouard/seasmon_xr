@@ -13,6 +13,8 @@ from seasmon_xr.ops import (
     ws2doptv,
     ws2doptvp,
     ws2doptvplc,
+    ws2dwcv,
+    ws2dwcvp,
     ws2dpgu,
 )
 from seasmon_xr.ops.spi import brentq, gammafit, spifun
@@ -167,3 +169,27 @@ def test_ws2doptvplc(ts):
     z, l = ws2doptvplc(_ts, 0, 0.9, 0.9)
     np.testing.assert_array_equal(z, [12, 28, 19, 9, 3, 4, 13, 19, 14, 12])
     assert l == pytest.approx(0.03162277660168379)
+
+
+def test_ws2dwcv(ts):
+    _ts = ts * 10
+
+    z, l = ws2dwcv(_ts, 0, np.arange(-2, 2), False)
+    np.testing.assert_array_equal(z, [15, 14, 12, 9, 8, 7, 7, 9, 10, 12])
+    assert l == 10.0
+
+    z, l = ws2dwcv(_ts, 0, np.arange(-2, 2), True)
+    np.testing.assert_array_equal(z, [16, 15, 12, 10, 8, 7, 8, 9, 11, 12])
+    assert l == 10.0
+
+
+def test_ws2dwcvp(ts):
+    _ts = ts * 10
+    z, l = ws2dwcvp(_ts, 0, 0.8, np.arange(-2, 2), False)
+    np.testing.assert_array_equal(z, [22, 20, 18, 16, 14, 13, 13, 13, 13, 13])
+    assert l == 10.0
+
+    _ts = ts * 10
+    z, l = ws2dwcvp(_ts, 0, 0.8, np.arange(-2, 2), True)
+    np.testing.assert_array_equal(z, [23, 21, 19, 16, 15, 13, 13, 13, 13, 13])
+    assert l == 10.0

@@ -625,6 +625,126 @@ def test_whit_whitsvcp_unnamed(darr):
     assert np.log10(l) == -1.5
 
 
+def test_whit_whitswcv(darr):
+    srange = np.arange(-2, 2)
+    _res = (
+        np.array(
+            [
+                [[53, 63, 73, 83, 93], [79, 64, 50, 37, 24]],
+                [[79, 83, 88, 69, 38], [73, 86, 47, 4, 2]],
+            ],
+            dtype="int16",
+        ),
+        np.array([[1.0, 1.0], [-2.0, -2.0]]),
+    )
+
+    _darr = darr.hdc.whit.whitswcv(nodata=0, srange=srange)
+
+    assert isinstance(_darr, xr.Dataset)
+    assert "band" in _darr
+    assert "sgrid" in _darr
+
+    np.testing.assert_array_equal(_darr.band, _res[0])
+    np.testing.assert_array_equal(_darr.sgrid, _res[1])
+
+    y = darr[:, 0, 0].astype("float64").data
+
+    z, l = ops.ws2dwcv(y, 0.0, srange, True)
+
+    np.testing.assert_array_equal(_darr.band[0, 0, :].data, np.rint(z))
+    assert np.log10(l) == 1.0
+
+
+def test_whit_whitswcv_unnamed(darr):
+    srange = np.arange(-2, 2)
+    _res = (
+        np.array(
+            [
+                [[53, 63, 73, 83, 93], [79, 64, 50, 37, 24]],
+                [[79, 83, 88, 69, 38], [73, 86, 47, 4, 2]],
+            ],
+            dtype="int16",
+        ),
+        np.array([[1.0, 1.0], [-2.0, -2.0]]),
+    )
+
+    darr.name = None
+    _darr = darr.hdc.whit.whitswcv(nodata=0, srange=srange)
+    assert isinstance(_darr, xr.Dataset)
+    assert "band" in _darr
+    assert "sgrid" in _darr
+
+    np.testing.assert_array_equal(_darr.band, _res[0])
+    np.testing.assert_array_equal(_darr.sgrid, _res[1])
+
+    y = darr[:, 0, 0].astype("float64").data
+
+    z, l = ops.ws2dwcv(y, 0.0, srange, True)
+
+    np.testing.assert_array_equal(_darr.band[0, 0, :].data, np.rint(z))
+    assert np.log10(l) == 1.0
+
+
+def test_whit_whitswcvp(darr):
+    srange = np.arange(-2, 2)
+    _res = (
+        np.array(
+            [
+                [[53, 64, 74, 85, 95], [91, 76, 61, 46, 31]],
+                [[81, 84, 88, 69, 39], [76, 86, 50, 9, 2]],
+            ],
+            dtype="int16",
+        ),
+        np.array([[1.0, 1.0], [-2.0, -2.0]]),
+    )
+
+    _darr = darr.hdc.whit.whitswcv(nodata=0, srange=srange, p=0.80)
+
+    assert isinstance(_darr, xr.Dataset)
+    assert "band" in _darr
+    assert "sgrid" in _darr
+
+    np.testing.assert_array_equal(_darr.band, _res[0])
+    np.testing.assert_array_equal(_darr.sgrid, _res[1])
+
+    y = darr[:, 0, 0].astype("float64").data
+
+    z, l = ops.ws2dwcvp(y, 0.0, 0.80, srange, True)
+
+    np.testing.assert_array_equal(_darr.band[0, 0, :].data, np.rint(z))
+    assert np.log10(l) == 1.0
+
+
+def test_whit_whitswcvp_unnamed(darr):
+    srange = np.arange(-2, 2)
+    _res = (
+        np.array(
+            [
+                [[53, 64, 74, 85, 95], [91, 76, 61, 46, 31]],
+                [[81, 84, 88, 69, 39], [76, 86, 50, 9, 2]],
+            ],
+            dtype="int16",
+        ),
+        np.array([[1.0, 1.0], [-2.0, -2.0]]),
+    )
+
+    darr.name = None
+    _darr = darr.hdc.whit.whitswcv(nodata=0, srange=srange, p=0.80)
+    assert isinstance(_darr, xr.Dataset)
+    assert "band" in _darr
+    assert "sgrid" in _darr
+
+    np.testing.assert_array_equal(_darr.band, _res[0])
+    np.testing.assert_array_equal(_darr.sgrid, _res[1])
+
+    y = darr[:, 0, 0].astype("float64").data
+
+    z, l = ops.ws2dwcvp(y, 0.0, 0.80, srange, True)
+
+    np.testing.assert_array_equal(_darr.band[0, 0, :].data, np.rint(z))
+    assert np.log10(l) == 1.0
+
+
 def test_whit_whitint(darr):
     labels_daily = np.array(
         [
@@ -769,6 +889,11 @@ def test_whit_whits_exception(darr):
 def test_whit_whitsvc_exception(darr):
     with pytest.raises(MissingTimeError):
         _ = darr.isel(time=0).hdc.whit.whitsvc(nodata=-3000)
+
+
+def test_whit_whitswcv_exception(darr):
+    with pytest.raises(MissingTimeError):
+        _ = darr.isel(time=0).hdc.whit.whitswcv(nodata=-3000)
 
 
 def test_whit_whitint_exception(darr):
