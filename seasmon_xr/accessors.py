@@ -383,6 +383,9 @@ class WhittakerSmoother(AccessorBase):
         Returns:
             ds_out: xarray.Dataset with smoothed data and sgrid
         """
+        if not self._check_for_timedim():
+            raise MissingTimeError("Whittaker filter requires a time dimension!")
+
         if p:
 
             if srange is None:
