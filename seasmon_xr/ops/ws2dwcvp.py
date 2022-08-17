@@ -27,11 +27,11 @@ def ws2dwcvp(y, nodata, p, llas, robust, out, lopt):
     (Eilers, A perfect smoother, doi:10.1021/ac034173t)
 
     Args:
-        * y (np.array): raw data array (1d, expected in float64)
-        * nodata (double, int): nodata value
-        * p (float): Envelope value for asymmetric weights
-        * llas (np.array): 1d array of s values to use for optimization
-        * robust (boolean): performs a robust fitting by computing robust weights if True
+        y (np.array): raw data array (1d, expected in float64)
+        nodata (double, int): nodata value
+        p (float): Envelope value for asymmetric weights
+        llas (np.array): 1d array of s values to use for optimization
+        robust (boolean): performs a robust fitting by computing robust weights if True
     """
     m = y.shape[0]
 
@@ -45,7 +45,7 @@ def ws2dwcvp(y, nodata, p, llas, robust, out, lopt):
     d_eigs = -2 + 2 * np.cos(np.arange(m) * np.pi / m)
     d_eigs[0] = 1e-15
 
-    if n > 5:
+    if n > 4:
 
         z = np.zeros(m)
         znew = np.zeros(m)

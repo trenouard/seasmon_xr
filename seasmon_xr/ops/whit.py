@@ -585,7 +585,7 @@ def ws2dwcv(y, nodata, llas, robust, out, lopt):
     d_eigs = -2 + 2 * np.cos(np.arange(m) * np.pi / m)
     d_eigs[0] = 1e-15
 
-    if n > 5:
+    if n > 4:
 
         z = np.zeros(m)
         r_weights = np.ones(m)
@@ -700,7 +700,7 @@ def ws2dwcvp(y, nodata, p, llas, robust, out, lopt):
     d_eigs = -2 + 2 * np.cos(np.arange(m) * np.pi / m)
     d_eigs[0] = 1e-15
 
-    if n > 5:
+    if n > 4:
 
         z = np.zeros(m)
         znew = np.zeros(m)
