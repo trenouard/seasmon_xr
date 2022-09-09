@@ -68,12 +68,12 @@ def ws2dwcvp(y, nodata, p, llas, robust, out, lopt):
         gcv_temp = [1e15, 0]
         for it in range(r_its):
             if it > 1:
-                smoothing = np.array([robust_gcv[1][1]])
+                lambda_range = np.array([robust_gcv[1][1]])
             else:
-                smoothing = 10**llas
+                lambda_range = 10**llas
 
             w_temp = w * r_weights
-            for s in smoothing:
+            for s in lambda_range:
 
                 z = ws2d(y, s, w_temp)
 
@@ -189,12 +189,12 @@ def _ws2dwcvp(y, w, p, llas, robust):
     gcv_temp = [1e15, 0]
     for it in range(r_its):
         if it > 1:
-                smoothing = np.array([robust_gcv[1][1]])
+                lambda_range = np.array([robust_gcv[1][1]])
         else:
-                smoothing = 10**llas
+                lambda_range = 10**llas
 
         w_temp = w * r_weights
-        for s in smoothing:
+        for s in lambda_range:
 
             z = ws2d(y, s, w_temp)
 
