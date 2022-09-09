@@ -579,23 +579,18 @@ def ws2dwcv(y, nodata, llas, robust, out, lopt):
         gcv_temp = [1e15, 0]
         for it in range(r_its):
             if it > 1:
-                s_opt_val = robust_gcv[1][1]
+                lambda_range = np.array([robust_gcv[1][1]])
             else:
-                s_opt_val = 0.0
-
-            if not s_opt_val:
-                smoothing = 10**llas
-            else:
-                smoothing = np.array([s_opt_val])
+                lambda_range = 10**llas
 
             w_temp = w * r_weights
-            for s in smoothing:
+            for s in lambda_range:
 
-                y_smoothed = ws2d(y, s, w_temp)
+                z = ws2d(y, s, w_temp)
 
                 gamma = w_temp / (w_temp + s * ((-1 * d_eigs) ** 2))
                 tr_H = gamma.sum()
-                wsse = (((w_temp**0.5) * (y - y_smoothed)) ** 2).sum()
+                wsse = (((w_temp**0.5) * (y - z)) ** 2).sum()
                 denominator = w_temp.sum() * (1 - (tr_H / (w_temp.sum()))) ** 2
                 gcv_score = wsse / denominator
 
@@ -603,7 +598,7 @@ def ws2dwcv(y, nodata, llas, robust, out, lopt):
 
                 if gcv[0] < gcv_temp[0]:
                     gcv_temp = gcv
-                    y_temp = y_smoothed
+                    y_temp = z
 
             best_gcv = gcv_temp
             s = best_gcv[1]
@@ -650,7 +645,7 @@ def ws2dwcv(y, nodata, llas, robust, out, lopt):
 def ws2dwcvp(y, nodata, p, llas, robust, out, lopt):
     """
     Whittaker filter Generalized Cross Validation optimization of lambda and asymmetric weights.
-    
+
     Whittaker Cross Validation (WCV)
     The Whittaker Smoother is a penalized least square algorithm for smoothing and interpolation
     of noisy data. The smoothing coefficient optimization allows to automate the right amount of
@@ -700,23 +695,18 @@ def ws2dwcvp(y, nodata, p, llas, robust, out, lopt):
         gcv_temp = [1e15, 0]
         for it in range(r_its):
             if it > 1:
-                s_opt_val = robust_gcv[1][1]
+                lambda_range = np.array([robust_gcv[1][1]])
             else:
-                s_opt_val = 0.0
-
-            if not s_opt_val:
-                smoothing = 10**llas
-            else:
-                smoothing = np.array([s_opt_val])
+                lambda_range = 10**llas
 
             w_temp = w * r_weights
-            for s in smoothing:
+            for s in lambda_range:
 
-                y_smoothed = ws2d(y, s, w_temp)
+                z = ws2d(y, s, w_temp)
 
                 gamma = w_temp / (w_temp + s * ((-1 * d_eigs) ** 2))
                 tr_H = gamma.sum()
-                wsse = (((w_temp**0.5) * (y - y_smoothed)) ** 2).sum()
+                wsse = (((w_temp**0.5) * (y - z)) ** 2).sum()
                 denominator = w_temp.sum() * (1 - (tr_H / (w_temp.sum()))) ** 2
                 gcv_score = wsse / denominator
 
@@ -724,7 +714,7 @@ def ws2dwcvp(y, nodata, p, llas, robust, out, lopt):
 
                 if gcv[0] < gcv_temp[0]:
                     gcv_temp = gcv
-                    y_temp = y_smoothed
+                    y_temp = z
 
             best_gcv = gcv_temp
             s = best_gcv[1]

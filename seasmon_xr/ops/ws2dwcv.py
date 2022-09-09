@@ -106,7 +106,7 @@ def ws2dwcv(y, nodata, llas, robust, out, lopt):
             robust_weights = w * r_weights
 
             robust_gcv.append(best_gcv)
-            
+
         robust_gcv = np.array(robust_gcv)
 
         if robust:

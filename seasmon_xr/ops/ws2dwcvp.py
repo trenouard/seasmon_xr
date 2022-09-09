@@ -18,7 +18,7 @@ from .ws2d import ws2d
 def ws2dwcvp(y, nodata, p, llas, robust, out, lopt):
     """
     Whittaker filter Generalized Cross Validation optimization of lambda and asymmetric weights.
-    
+
     Whittaker Cross Validation (WCV)
     The Whittaker Smoother is a penalized least square algorithm for smoothing and interpolation
     of noisy data. The smoothing coefficient optimization allows to automate the right amount of
@@ -109,7 +109,7 @@ def ws2dwcvp(y, nodata, p, llas, robust, out, lopt):
             robust_weights = w * r_weights
 
             robust_gcv.append(best_gcv)
-            
+
         robust_gcv = np.array(robust_gcv)
 
         if robust:
@@ -146,7 +146,7 @@ def ws2dwcvp(y, nodata, p, llas, robust, out, lopt):
 def _ws2dwcvp(y, w, p, llas, robust):
     """
     Whittaker filter Generalized Cross Validation optimization of lambda and asymmetric weights.
-    
+
     Whittaker Cross Validation (WCV)
     The Whittaker Smoother is a penalized least square algorithm for smoothing and interpolation
     of noisy data. The smoothing coefficient optimization allows to automate the right amount of
@@ -189,9 +189,9 @@ def _ws2dwcvp(y, w, p, llas, robust):
     gcv_temp = [1e15, 0]
     for it in range(r_its):
         if it > 1:
-                lambda_range = np.array([robust_gcv[1][1]])
+            lambda_range = np.array([robust_gcv[1][1]])
         else:
-                lambda_range = 10**llas
+            lambda_range = 10**llas
 
         w_temp = w * r_weights
         for s in lambda_range:
@@ -230,7 +230,7 @@ def _ws2dwcvp(y, w, p, llas, robust):
         robust_weights = w * r_weights
 
         robust_gcv.append(best_gcv)
-        
+
     robust_gcv = np.array(robust_gcv)
 
     if robust:
