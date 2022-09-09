@@ -68,14 +68,9 @@ def ws2dwcvp(y, nodata, p, llas, robust, out, lopt):
         gcv_temp = [1e15, 0]
         for it in range(r_its):
             if it > 1:
-                s_opt_val = robust_gcv[1][1]
+                smoothing = np.array([robust_gcv[1][1]])
             else:
-                s_opt_val = 0.0
-
-            if not s_opt_val:
                 smoothing = 10**llas
-            else:
-                smoothing = np.array([s_opt_val])
 
             w_temp = w * r_weights
             for s in smoothing:
@@ -194,14 +189,9 @@ def _ws2dwcvp(y, w, p, llas, robust):
     gcv_temp = [1e15, 0]
     for it in range(r_its):
         if it > 1:
-            s_opt_val = robust_gcv[1][1]
+                smoothing = np.array([robust_gcv[1][1]])
         else:
-            s_opt_val = 0.0
-
-        if not s_opt_val:
-            smoothing = 10**llas
-        else:
-            smoothing = np.array([s_opt_val])
+                smoothing = 10**llas
 
         w_temp = w * r_weights
         for s in smoothing:
