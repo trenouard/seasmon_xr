@@ -17,15 +17,16 @@ from .ws2d import ws2d
 )
 def ws2dwcvp(y, nodata, p, llas, robust, out, lopt):
     """
-    Whittaker filter Generalized Cross Validation optimization of S and asymmetric weights.
-
+    Whittaker filter Generalized Cross Validation optimization of lambda and asymmetric weights.
+    
+    Whittaker Cross Validation (WCV)
     The Whittaker Smoother is a penalized least square algorithm for smoothing and interpolation
     of noisy data. The smoothing coefficient optimization allows to automate the right amount of
     penalty.
     References:
     - Eilers, A perfect smoother, https://doi.org/10.1021/ac034173t
     - Eilers, Pesendorfer and Bonifacio, Automatic smoothing of remote sensing data,
-      https://doi.org/10.1016/j.csda.2009.09.020)
+      https://doi.org/10.1109/Multi-Temp.2017.8076705
     - Garcia, Robust smoothing of gridded data in one and higher dimensions with missing values,
       https://doi.org/10.1016/j.csda.2009.09.020
 
@@ -113,7 +114,7 @@ def ws2dwcvp(y, nodata, p, llas, robust, out, lopt):
             robust_weights = w * r_weights
 
             robust_gcv.append(best_gcv)
-
+            
         robust_gcv = np.array(robust_gcv)
 
         if robust:
@@ -149,15 +150,16 @@ def ws2dwcvp(y, nodata, p, llas, robust, out, lopt):
 @jit(nopython=True)
 def _ws2dwcvp(y, w, p, llas, robust):
     """
-    Whittaker filter Generalized Cross Validation optimization of S and asymmetric weights.
-
+    Whittaker filter Generalized Cross Validation optimization of lambda and asymmetric weights.
+    
+    Whittaker Cross Validation (WCV)
     The Whittaker Smoother is a penalized least square algorithm for smoothing and interpolation
     of noisy data. The smoothing coefficient optimization allows to automate the right amount of
     penalty.
     References:
     - Eilers, A perfect smoother, https://doi.org/10.1021/ac034173t
     - Eilers, Pesendorfer and Bonifacio, Automatic smoothing of remote sensing data,
-      https://doi.org/10.1016/j.csda.2009.09.020)
+      https://doi.org/10.1109/Multi-Temp.2017.8076705
     - Garcia, Robust smoothing of gridded data in one and higher dimensions with missing values,
       https://doi.org/10.1016/j.csda.2009.09.020
 
@@ -238,7 +240,7 @@ def _ws2dwcvp(y, w, p, llas, robust):
         robust_weights = w * r_weights
 
         robust_gcv.append(best_gcv)
-
+        
     robust_gcv = np.array(robust_gcv)
 
     if robust:
