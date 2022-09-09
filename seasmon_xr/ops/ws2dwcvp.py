@@ -75,11 +75,11 @@ def ws2dwcvp(y, nodata, p, llas, robust, out, lopt):
             w_temp = w * r_weights
             for s in smoothing:
 
-                y_smoothed = ws2d(y, s, w_temp)
+                z = ws2d(y, s, w_temp)
 
                 gamma = w_temp / (w_temp + s * ((-1 * d_eigs) ** 2))
                 tr_H = gamma.sum()
-                wsse = (((w_temp**0.5) * (y - y_smoothed)) ** 2).sum()
+                wsse = (((w_temp**0.5) * (y - z)) ** 2).sum()
                 denominator = w_temp.sum() * (1 - (tr_H / (w_temp.sum()))) ** 2
                 gcv_score = wsse / denominator
 
@@ -87,7 +87,7 @@ def ws2dwcvp(y, nodata, p, llas, robust, out, lopt):
 
                 if gcv[0] < gcv_temp[0]:
                     gcv_temp = gcv
-                    y_temp = y_smoothed
+                    y_temp = z
 
             best_gcv = gcv_temp
             s = best_gcv[1]
@@ -196,11 +196,11 @@ def _ws2dwcvp(y, w, p, llas, robust):
         w_temp = w * r_weights
         for s in smoothing:
 
-            y_smoothed = ws2d(y, s, w_temp)
+            z = ws2d(y, s, w_temp)
 
             gamma = w_temp / (w_temp + s * ((-1 * d_eigs) ** 2))
             tr_H = gamma.sum()
-            wsse = (((w_temp**0.5) * (y - y_smoothed)) ** 2).sum()
+            wsse = (((w_temp**0.5) * (y - z)) ** 2).sum()
             denominator = w_temp.sum() * (1 - (tr_H / (w_temp.sum()))) ** 2
             gcv_score = wsse / denominator
 
@@ -208,7 +208,7 @@ def _ws2dwcvp(y, w, p, llas, robust):
 
             if gcv[0] < gcv_temp[0]:
                 gcv_temp = gcv
-                y_temp = y_smoothed
+                y_temp = z
 
         best_gcv = gcv_temp
         s = best_gcv[1]
