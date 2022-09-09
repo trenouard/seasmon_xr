@@ -241,7 +241,6 @@ class WhittakerSmoother(AccessorBase):
         as sgrid with a constant per pixel
 
         Args:
-            ds: input dataset,
             nodata: nodata value
             sg: sgrid,
             s: S value
@@ -297,7 +296,6 @@ class WhittakerSmoother(AccessorBase):
         Apply whittaker with V-curve optimization of S.
 
         Args:
-            self: input dataset
             nodata: nodata value
             lc: lag1 autocorrelation DataArray,
             srange: values of S for V-curve optimization (mandatory if no autocorrelation raster)
@@ -374,7 +372,6 @@ class WhittakerSmoother(AccessorBase):
         Apply whittaker with Generalized Cross Validation optimization of S.
 
         Args:
-            self: input dataset
             nodata: nodata value
             srange: values of S for GCV optimization
             p: Envelope value for asymmetric weights
