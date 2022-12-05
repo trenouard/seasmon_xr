@@ -40,9 +40,9 @@ jobs:
       cache-path: ${{ steps.cfg.outputs.cache-path }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python ${{ inputs.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ inputs.python-version }}
 
@@ -55,7 +55,7 @@ jobs:
           echo "::set-output name=cache-path::${cache_path}"
 
       - name: cache deps
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         id: py_cache
         with:
           path: ${{ steps.cfg.outputs.cache-path }}

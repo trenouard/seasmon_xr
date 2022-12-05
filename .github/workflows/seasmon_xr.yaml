@@ -19,9 +19,9 @@ jobs:
       - pyenv
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Get Python Env from Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           key: ${{ needs.pyenv.outputs.cache-key }}
           path: ${{ needs.pyenv.outputs.cache-path }}
@@ -40,9 +40,9 @@ jobs:
       - pyenv
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Get Python Env from Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           key: ${{ needs.pyenv.outputs.cache-key }}
           path: ${{ needs.pyenv.outputs.cache-path }}
@@ -66,9 +66,9 @@ jobs:
       - black
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Get Python Env from Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           key: ${{ needs.pyenv.outputs.cache-key }}
           path: ${{ needs.pyenv.outputs.cache-path }}
@@ -80,7 +80,7 @@ jobs:
         env:
           py_path: ${{ needs.pyenv.outputs.cache-path }}
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         id: wheels_cache
         with:
           path: ./wheels
@@ -116,7 +116,7 @@ jobs:
           python setup.py sdist -d wheels
 
       - name: Upload results (artifact)
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: wheels
           path: wheels
@@ -128,9 +128,9 @@ jobs:
       - black
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Get Python Env from Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           key: ${{ needs.pyenv.outputs.cache-key }}
           path: ${{ needs.pyenv.outputs.cache-path }}
@@ -156,9 +156,9 @@ jobs:
       - wheels
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Get Python Env from Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           key: ${{ needs.pyenv.outputs.cache-key }}
           path: ${{ needs.pyenv.outputs.cache-path }}
@@ -171,7 +171,7 @@ jobs:
           py_path: ${{ needs.pyenv.outputs.cache-path }}
 
       - name: Get Wheels
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: wheels
           path: wheels
