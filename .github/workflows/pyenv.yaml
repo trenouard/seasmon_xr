@@ -51,8 +51,8 @@ jobs:
         run: |
           cache_path="${{ env.pythonLocation }}"
           cache_key="${cache_path}-${{ hashFiles('requirements.txt', 'requirements_dev.txt') }}"
-          echo "::set-output name=cache-key::${cache_key}"
-          echo "::set-output name=cache-path::${cache_path}"
+          echo "cache-key=${cache_key}" >> $GITHUB_OUTPUT
+          echo "cache-path=${cache_path}" >> $GITHUB_OUTPUT
 
       - name: cache deps
         uses: actions/cache@v3
