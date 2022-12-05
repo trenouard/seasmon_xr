@@ -129,33 +129,33 @@ class IterativeAggregation(AccessorBase):
 
     def sum(
         self,
-        n: int = None,
+        n: Optional[int] = None,
         dim: str = "time",
-        begin: Union[str, int, float] = None,
-        end: Union[str, int, float] = None,
-        method: str = None,
+        begin: Optional[Union[str, int, float]] = None,
+        end: Optional[Union[str, int, float]] = None,
+        method: Optional[str] = None,
     ):
         """Generate sum-aggregations over dim for periods n."""
         yield from self._iteragg(np.nansum, n, dim, begin, end, method)
 
     def mean(
         self,
-        n: int = None,
+        n: Optional[int] = None,
         dim: str = "time",
-        begin: Union[str, int, float] = None,
-        end: Union[str, int, float] = None,
-        method: str = None,
+        begin: Optional[Union[str, int, float]] = None,
+        end: Optional[Union[str, int, float]] = None,
+        method: Optional[str] = None,
     ):
         """Generate mean-aggregations over dim for slices of n."""
         yield from self._iteragg(np.nanmean, n, dim, begin, end, method)
 
     def full(
         self,
-        n: int = None,
+        n: Optional[int] = None,
         dim: str = "time",
-        begin: Union[str, int, float] = None,
-        end: Union[str, int, float] = None,
-        method: str = None,
+        begin: Optional[Union[str, int, float]] = None,
+        end: Optional[Union[str, int, float]] = None,
+        method: Optional[str] = None,
     ):
         """Generate mean-aggregations over dim for slices of n."""
         yield from self._iteragg(None, n, dim, begin, end, method)
@@ -231,9 +231,9 @@ class WhittakerSmoother(AccessorBase):
     def whits(
         self,
         nodata: Union[int, float],
-        sg: xarray.DataArray = None,
-        s: float = None,
-        p: float = None,
+        sg: Optional[xarray.DataArray] = None,
+        s: Optional[float] = None,
+        p: Optional[float] = None,
     ) -> xarray.Dataset:
         """
         Apply whittaker with fixed S.
@@ -290,9 +290,9 @@ class WhittakerSmoother(AccessorBase):
     def whitsvc(
         self,
         nodata: Union[int, float],
-        lc: xarray.DataArray = None,
-        srange: np.ndarray = None,
-        p: float = None,
+        lc: Optional[xarray.DataArray] = None,
+        srange: Optional[np.ndarray] = None,
+        p: Optional[float] = None,
     ) -> xarray.Dataset:
         """
         Apply whittaker with V-curve optimization of S.
