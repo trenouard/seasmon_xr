@@ -2,7 +2,7 @@
 # pyright: reportGeneralTypeIssues=false
 # pylint: disable=C0103,C0301,E0401,R0912,R0913,R0914,R0915,too-many-lines
 from math import log, pow, sqrt  # pylint: disable=W0622
-from typing import Union
+from typing import Optional, Union
 
 import xarray
 import numpy as np
@@ -773,9 +773,9 @@ def whits(
     ds: xarray.Dataset,
     dim: str,
     nodata: Union[int, float],
-    sg: xarray.DataArray = None,
-    s: float = None,
-    p: float = None,
+    sg: Optional[xarray.DataArray] = None,
+    s: Optional[float] = None,
+    p: Optional[float] = None,
 ) -> xarray.Dataset:
     """
     Apply whittaker with fixed S.
@@ -833,9 +833,9 @@ def whitsvc(
     ds: xarray.Dataset,
     dim: str,
     nodata: Union[int, float],
-    lc: xarray.DataArray = None,
-    srange: np.ndarray = None,
-    p: float = None,
+    lc: Optional[xarray.DataArray] = None,
+    srange: Optional[np.ndarray] = None,
+    p: Optional[float] = None,
 ) -> xarray.Dataset:
     """
     Apply whittaker with V-curve optimization of S.

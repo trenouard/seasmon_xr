@@ -4,7 +4,8 @@ pytest
 pytest-runner
 pytest-cov
 black
-pylint
+pylint==2.14.4
+astroid==2.11.6
 pydocstyle
 isort
 mypy

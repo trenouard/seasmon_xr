@@ -1,0 +1,47 @@
+{% set name = "seasmon-xr" %}
+{% set _name = name.replace("-", "_") %}
+{% set version = "0.1.2.dev" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  path: ../../
+
+build:
+  noarch: python
+  script: {{ PYTHON }} -m pip install . -vv
+  number: 0
+
+requirements:
+  host:
+    - python >=3.7
+    - pip
+  run:
+    - python >=3.7
+    - xarray
+    - dask-core
+    - numba
+    # pinning this for numba-scipy
+    - numpy <1.23
+    - scipy <=1.7.3
+
+test:
+  imports:
+    - seasmon_xr
+  commands:
+    - pip check
+  requires:
+    - pip
+
+about:
+  home: https://github.com/WFP-VAM/seasmon_xr/
+  summary: xarray tools for seasonal monitor
+  license: MIT
+  license_file: LICENSE
+
+extra:
+  recipe-maintainers:
+    - valpesendorfer
+    - Kirill888

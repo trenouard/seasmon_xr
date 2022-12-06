@@ -2,6 +2,7 @@
 # pylint: disable=redefined-outer-name,unused-import,no-member,no-name-in-module,missing-function-docstring
 # pyright: reportGeneralTypeIssues=false
 
+import dask.array as da
 import numpy as np
 import pandas as pd
 import pytest
@@ -10,6 +11,15 @@ import xarray as xr
 from seasmon_xr import ops
 from seasmon_xr.accessors import MissingTimeError
 from seasmon_xr.ops.ws2d import ws2d
+
+
+def to_da(xx):
+    return xr.DataArray(
+        data=da.from_array(xx.data),
+        dims=xx.dims,
+        coords=xx.coords,
+        attrs=xx.attrs,
+    )
 
 
 @pytest.fixture
@@ -161,6 +171,14 @@ def test_algo_autocorr(darr):
     darr_autocorr = darr.hdc.algo.autocorr()
     assert isinstance(darr_autocorr, xr.DataArray)
     np.testing.assert_almost_equal(darr_autocorr, _res)
+
+
+def test_algo_autocorr_da(darr):
+    darr_da = to_da(darr)
+    _ = darr_da.hdc.algo.autocorr()
+
+    darr_da_t = darr_da.transpose(..., "time")
+    _ = darr_da_t.hdc.algo.autocorr()
 
 
 def test_algo_spi(darr, res_spi):
