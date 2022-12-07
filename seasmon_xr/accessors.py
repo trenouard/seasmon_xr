@@ -365,8 +365,8 @@ class WhittakerSmoother(AccessorBase):
     def whitswcv(
         self,
         nodata: Union[int, float],
-        srange: np.ndarray = None,
-        p: float = None,
+        srange: Optional[np.ndarray] = None,
+        p: Optional[float] = None,
         robust: bool = True,
     ) -> xarray.Dataset:
         """

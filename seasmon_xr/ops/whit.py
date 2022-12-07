@@ -908,8 +908,8 @@ def whitswcv(
     ds: xarray.Dataset,
     dim: str,
     nodata: Union[int, float],
-    srange: np.ndarray = None,
-    p: float = None,
+    srange: Optional[np.ndarray] = None,
+    p: Optional[float] = None,
     robust: boolean = True,
 ) -> xarray.Dataset:
     """
